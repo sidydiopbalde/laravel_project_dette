@@ -10,7 +10,7 @@ use Laravel\Passport\HasApiTokens;
 class User extends Authenticatable
 {
     use HasFactory , HasApiTokens;
-    protected $fillable = ['prenom', 'nom', 'login', 'mail', 'password', 'role'];
+    protected $fillable = ['prenom', 'nom', 'login', 'mail', 'password', 'role_id','photo'];
     protected $hidden = ['password', 'remember_token','created_at', 'updated_at'];
 
     // Définir les attributs qui ne peuvent pas être assignés en masse
@@ -20,5 +20,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(Clients::class)->nullable();
     }
-  
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    
+    // public function users_roles()
+
 }

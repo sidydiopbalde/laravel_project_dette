@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Rules\CustumPassword; 
-use App\Rules\TelephoneRules; 
-use App\Enums\RoleEnum;
+use App\Rules\CustumPassword;
+use App\Rules\TelephoneRules;
 use Illuminate\Contracts\Validation\Validator;
 
 class StoreRequest extends FormRequest
@@ -30,14 +29,15 @@ class StoreRequest extends FormRequest
         return [
             'surnom' => 'required|string|max:255|unique:clients',
             'adresse' => 'required|string|max:255',
-            'telephone' => ['required', 'string', 'max:15', 'unique:clients', new TelephoneRules()], // Utilisation de la règle TelephoneRules
+            'telephone' => ['required', 'string', 'max:15', 'unique:clients', new TelephoneRules()],
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation pour la photo
             'user' => ['sometimes'],
             'user.prenom' => 'required|string|max:255',
             'user.nom' => 'required|string|max:255',
             'user.login' => 'required|string|max:255|unique:users,login',
-            'user.role' => ['required', 'string', 'in:' . implode(',', array_column(RoleEnum::cases(), 'value'))], // Utilisation de l'énumération pour les rôles
+            'user.role_id' => 'required|exists:roles,id', // Validation pour role_id
             'user.mail' => 'nullable|string|email|max:255|unique:users,mail',
-            'user.password' =>  ['nullable', new CustumPassword],
+            'user.password' => ['nullable', new CustumPassword],
         ];
     }
 
@@ -63,21 +63,32 @@ class StoreRequest extends FormRequest
             'telephone.max' => 'Le numéro de téléphone ne peut pas dépasser 15 caractères.',
             'telephone.unique' => 'Le numéro de téléphone doit être unique.',
             
-            'user_id.exists' => 'L\'utilisateur associé n\'existe pas.',
+            'photo.image' => 'La photo doit être une image.',
+            'photo.mimes' => 'La photo doit être au format jpg, jpeg, ou png.',
+            'photo.max' => 'La photo ne peut pas dépasser 2 Mo.',
+            
+            'user.role_id.required' => 'Le rôle de l\'utilisateur est obligatoire.',
+            'user.role_id.exists' => 'Le rôle sélectionné n\'existe pas.',
 
             'user.prenom.string' => 'Le prénom de l\'utilisateur doit être une chaîne de caractères.',
             'user.nom.string' => 'Le nom de l\'utilisateur doit être une chaîne de caractères.',
             'user.login.string' => 'Le login de l\'utilisateur doit être une chaîne de caractères.',
             'user.login.unique' => 'Le login de l\'utilisateur doit être unique.',
-            'user.role.in' => 'Le rôle de l\'utilisateur doit être parmi les valeurs suivantes : ADMIN, Boutiquier, Client.',
+            'user.role_id.exists' => 'Le rôle sélectionné n\'existe pas.',
             'user.mail.email' => 'L\'email de l\'utilisateur doit être une adresse email valide.',
             'user.mail.unique' => 'L\'email de l\'utilisateur doit être unique.',
             'user.password.min' => 'Le mot de passe de l\'utilisateur doit contenir au moins 8 caractères.',
         ];
     }
 
+    /**
+     * Gère l'échec de la validation.
+     *
+     * @param Validator $validator
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function failedValidation(Validator $validator)
     {
-        return response()->json(['message' => 'message'], 422);
+        return response()->json(['message' => 'La validation a échoué.', 'errors' => $validator->errors()], 422);
     }
 }

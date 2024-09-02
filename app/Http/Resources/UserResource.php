@@ -15,8 +15,10 @@ class UserResource extends JsonResource
         return [
             'prenom' => $this->prenom,
             'nom' => $this->nom,
-            'email' => $this->email,
-            'role' => $this->role,
+            'mail' => $this->mail,
+            // 'role' => $this->user->role->libelle,
+            'photo' => $this->photo,
+            //'client' => $this->whenLoaded('client')? new ClientResource($this->client) : null, // Indique si le client est lié à l'utilisateur et le renvoie si c'est le cas.
             'user' => $this->whenLoaded('user') ? new UserResource($this->user) : null,
            
         ];

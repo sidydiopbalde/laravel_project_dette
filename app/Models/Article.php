@@ -15,7 +15,8 @@ class Article extends Model
 
     // Spécifiez les attributs qui peuvent être assignés en masse
     protected $fillable = ['libelle', 'qte','prix_unitaire'];
-    protected $guarded = ['id', 'created_at', 'updated_at'];
+    protected $guarded = ['id'];
+    protected $hidden = ['id', 'created_at', 'updated_at'];
     // Spécifiez la colonne pour les soft deletes (facultatif, Laravel utilise par défaut 'deleted_at')
     protected $dates = ['deleted_at'];
 }

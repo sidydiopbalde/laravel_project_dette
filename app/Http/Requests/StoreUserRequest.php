@@ -3,11 +3,10 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Rules\CustumPassword; 
-use App\Rules\TelephoneRules; 
-use App\Enums\RoleEnum;
+use App\Rules\CustumPassword;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+
 class StoreUserRequest extends FormRequest
 {
     /**
@@ -28,13 +27,13 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Validation pour les champs utilisateur
             'prenom' => 'required|string|max:255',
             'nom' => 'required|string|max:255',
             'login' => 'required|string|max:255|unique:users,login',
             'mail' => 'required|string|email|max:255|unique:users,mail',
             'password' => ['required', 'string', new CustumPassword],
-            'role' => ['required', 'string', 'in:' . implode(',', array_column(RoleEnum::cases(), 'value'))],
+            'role_id' => 'required|exists:roles,id',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation de la photo
         ];
     }
 
@@ -46,9 +45,6 @@ class StoreUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-           
-        
-            // Messages de validation personnalisés pour l'utilisateur
             'prenom.required' => 'Le prénom de l\'utilisateur est obligatoire.',
             'prenom.string' => 'Le prénom de l\'utilisateur doit être une chaîne de caractères.',
             'prenom.max' => 'Le prénom de l\'utilisateur ne peut pas dépasser 255 caractères.',
@@ -70,19 +66,26 @@ class StoreUserRequest extends FormRequest
 
             'password.required' => 'Le mot de passe de l\'utilisateur est obligatoire.',
 
-            'role.required' => 'Le rôle de l\'utilisateur est obligatoire.',
-            'role.in' => 'Le rôle de l\'utilisateur doit être parmi les valeurs suivantes : ADMIN, Boutiquier, Client.',
+            'role_id.required' => 'Le rôle de l\'utilisateur est obligatoire.',
+            'role_id.exists' => 'Le rôle sélectionné n\'existe pas.',
+
+            'photo.image' => 'Le fichier téléchargé doit être une image.',
+            'photo.mimes' => 'La photo doit être un fichier de type : jpg, jpeg, png.',
+            'photo.max' => 'La taille de la photo ne peut pas dépasser 2 Mo.',
         ];
     }
 
-
+    /**
+     * Gère l'échec de la validation.
+     *
+     * @param Validator $validator
+     * @throws HttpResponseException
+     */
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'message' => 'La validation a échoué.',
             'errors' => $validator->errors()
         ], 422));
-    // return response()->json(['message' => 'message'], 422);
     }
 }
-

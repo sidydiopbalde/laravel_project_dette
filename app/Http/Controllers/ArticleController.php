@@ -6,27 +6,134 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
+use App\Http\Requests\UpdateArticlestockRequest;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ArticleResource;
 use App\Traits\ApiResponseTrait;
+
+/**
+ * @OA\Schema(
+ *     schema="UpdateArticleRequest",
+ *     type="object",
+ *     required={"qte"},
+ *     @OA\Property(property="qte", type="integer", example=10)
+ * )
+ */
+
+
+/**
+ * @OA\Schema(
+ *     schema="Article",
+ *     type="object",
+ *     required={"libelle", "qte", "prix_unitaire"},
+ *     @OA\Property(property="libelle", type="string", example="Article Name"),
+ *     @OA\Property(property="qte", type="integer", example=100),
+ *     @OA\Property(property="prix_unitaire", type="number", format="float", example=19.99),
+
+ * )
+ */
+
+// /**
+//  * @OA\Schema(
+//  *     schema="UpdateArticlestockRequest",
+//  *     type="object",
+//  *     required={"articles"},
+//  *     @OA\Property(
+//  *         property="articles",
+//  *         type="array",
+//  *         @OA\Items(
+//  *             type="object",
+//  *             required={"id", "qte"},
+//  *             @OA\Property(property="id", type="integer", example=1),
+//  *             @OA\Property(property="qte", type="integer", example=10)
+//  *         )
+//  *     )
+//  * )
+//  */
 class ArticleController extends Controller
 {
     use ApiResponseTrait;
+
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/articles",
+     *     summary="List all articles",
+     *     tags={"Articles"},
+     *     @OA\Parameter(name="libelle", in="query", description="Filter articles by libelle", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="disponible", in="query", description="Filter articles by availability", required=false, @OA\Schema(type="string", enum={"oui", "non"})),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of articles",
+     *         @OA\JsonContent(type="object", @OA\Property(property="status", type="integer"), @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Article")), @OA\Property(property="message", type="string"))
+     *     ),
+     *     @OA\Response(
+     *         response=411,
+     *         description="No articles found",
+     *         @OA\JsonContent(type="object", @OA\Property(property="status", type="integer"), @OA\Property(property="data", type="null"), @OA\Property(property="message", type="string"))
+     *     )
+     * )
      */
-        public function index()
-        {
-            $articles = Article::all(); // Récupère tous les articles
-            return response()->json($articles); // Retourne la liste des articles en JSON
-        }
-
-
-
-   
+    public function index(Request $request)
+    {
+        // Vérifiez l'accès avec la policy
+        $this->authorize('access', Article::class);
     
-   
-
+        $libelle = $request->input('libelle');
+        $disponible = $request->input('disponible');
+    
+        $query = Article::query();
+    
+        if ($libelle) {
+            $query->where('libelle', 'like', '%' . $libelle . '%');
+        }
+    
+        if ($disponible) {
+            if ($disponible === 'oui') {
+                $query->where('qte', '>', 0); // Article disponible si qte > 0
+            } elseif ($disponible === 'non') {
+                $query->where('qte', '=', 0); // Article non disponible si qte = 0
+            }
+        }
+    
+        $articles = $query->paginate(2);
+    
+        if ($articles->isEmpty()) {
+            return response()->json([
+                'status' => 411,
+                'data' => null,
+                'message' => 'Objet non trouvé.',
+            ], 411);
+        }
+    
+        return response()->json([
+            'status' => 200,
+            'data' => $articles,
+            'message' => 'Liste des articles récupérée avec succès.',
+        ]);
+    }
+    
+    
+        /**
+     * @OA\Post(
+     *     path="/api/articles",
+     *     summary="Create a new article",
+     *     tags={"Articles"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/Article")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Article created successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/Article")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid input"
+     *     )
+     * )
+     */
+    
     public function store(StoreArticleRequest $request)
     {
         // Les données sont déjà validées par StoreArticleRequest
@@ -52,6 +159,23 @@ class ArticleController extends Controller
     }
     
     /**
+     * @OA\Get(
+     *     path="/api/articles/{id}",
+     *     summary="Get an article by ID",
+     *     tags={"Articles"},
+     *     @OA\Parameter(name="id", in="path", description="ID of the article", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Article details",
+     *         @OA\JsonContent(ref="#/components/schemas/Article")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Article not found"
+     *     )
+     * )
+     */
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Article $article)
@@ -76,7 +200,31 @@ class ArticleController extends Controller
     
     //     return response()->json($article); // Retourne l'article mis à jour en JSON
     // }
-
+  /**
+     * @OA\Patch(
+     *     path="/api/articles/{id}",
+     *     summary="Update an article",
+     *     tags={"Articles"},
+     *     @OA\Parameter(name="id", in="path", description="ID of the article to update", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *        @OA\JsonContent(ref="#/components/schemas/Article")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Article updated successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/Article")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Article not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error during update"
+     *     )
+     * )
+     */
 //update Article by id
     public function update(UpdateArticleRequest $request, $id)
     {
@@ -101,31 +249,85 @@ class ArticleController extends Controller
         }
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/articles/stock",
+     *     summary="Update quantities of multiple articles",
+     *     tags={"Articles"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *   @OA\JsonContent(ref="#/components/schemas/Article")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Articles updated successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="successful_updates", type="array", @OA\Items(type="object", @OA\Property(property="id", type="integer"), @OA\Property(property="qte", type="integer"))), @OA\Property(property="failed_updates", type="array", @OA\Items(type="object", @OA\Property(property="id", type="integer"), @OA\Property(property="qte", type="integer"))))
+     *     )
+     * )
+     */
     //update un ou plusieurs articles
-    public function updateQuantities(Request $request)
-    {
-        // Validation des données
-        $validated = $request->validate([
-            'articles' => 'required|array',
-            'articles.*.id' => 'required|integer|exists:articles,id',
-            'articles.*.qte' => 'required|integer|min:1',
-        ]);
+    public function updateQuantities(UpdateArticlestockRequest $request)
+{
+    $validated = $request->validated();
+    $failedUpdates = []; // Tableau pour stocker les articles dont la mise à jour a échoué
+    $successfulUpdates = []; // Tableau pour stocker les articles mis à jour avec succès
 
-        // Parcourir chaque article à mettre à jour
-        foreach ($validated['articles'] as $articleData) {
-            $article = Article::find($articleData['id']);
-
-            // Ajouter la nouvelle quantité à la quantité existante
+    foreach ($validated['articles'] as $articleData) {
+        $article = Article::find($articleData['id']);
+        if ($article) {
+            // Mise à jour de la quantité de l'article
             $article->qte += $articleData['qte'];
-
-            // Sauvegarder l'article mis à jour
             $article->save();
-        }
 
-        return response()->json(['message' => 'Les articles ont été mis à jour avec succès.']);
+            // Ajouter les informations de l'article mis à jour avec succès
+            $successfulUpdates[] = [
+                'id' => $article->id,
+                'qte' => $article->qte
+            ];
+        } else {
+            // Ajouter les informations de l'article qui n'a pas pu être mis à jour
+            $failedUpdates[] = [
+                'id' => $articleData['id'],
+                'qte' => $articleData['qte']
+            ];
+        }
     }
 
+    // Préparer la réponse
+    $response = [
+        'message' => 'Les articles ont été mis à jour avec succès.',
+        'successful_updates' => $successfulUpdates,
+        'failed_updates' => $failedUpdates,
+    ];
 
+    // Si des mises à jour ont échoué, modifier le message
+    if (!empty($failedUpdates)) {
+        $response['message'] = 'Certaines mises à jour ont échoué.';
+    }
+
+    return response()->json($response);
+}
+
+    
+    //Get clients with  with account
+    
+/**
+     * @OA\Delete(
+     *     path="/api/articles/{id}",
+     *     summary="Delete an article",
+     *     tags={"Articles"},
+     *     @OA\Parameter(name="id", in="path", description="ID of the article to delete", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Article deleted successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Article not found"
+     *     )
+     * )
+     */
     /**
      * Remove the specified resource from storage.
      */
