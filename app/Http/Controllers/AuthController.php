@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AuthenticationServiceInterface;
+use App\Services\AuthentificationServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,6 +42,12 @@ use Illuminate\Support\Facades\Auth;
  */
 class AuthController extends Controller
 {
+    protected $authService;
+
+    public function __construct(AuthentificationServiceInterface $authService)
+    {
+        $this->authService = $authService;
+    }
     /**
  * @OA\Schema(
  *     schema="User",
@@ -52,29 +60,46 @@ class AuthController extends Controller
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2021-01-01T00:00:00Z")
  * )
  */
+    // public function login(Request $request)
+    // {
+    //     // Valider les informations d'identification entrées par l'utilisateur
+    //     $credentials = $request->validate([
+    //         'login' => 'required|string',
+    //         'password' => 'required|string',
+    //     ]);
+
+    //     // Tentative de connexion avec les informations d'identification fournies
+    //     if (Auth::attempt($credentials)) {
+    //         // Si l'authentification est réussie, redirigez l'utilisateur
+    //         $user = User::find(Auth::user()->id);
+    //        // dd($user); // Récupérer l'utilisateur connecté
+    //         $token = $user->createToken('LaravelPassportAuth',)->accessToken; // Créer un token si vous utilisez Laravel Passport
+            
+    //         return response()->json([
+    //             'message' => 'Connexion réussie',
+    //             'user' => $user,
+    //             'token' => $token
+    //         ], 200);
+    //     } else {
+    //         // Si l'authentification échoue, renvoyez une réponse avec une erreur
+    //         return response()->json(['message' => 'Informations d\'identification invalides'], 401);
+    //     }
+    // }
+
     public function login(Request $request)
     {
-        // Valider les informations d'identification entrées par l'utilisateur
-        $credentials = $request->validate([
-            'login' => 'required|string',
-            'password' => 'required|string',
-        ]);
+        $credentials = $request->only('login', 'password');
+        $token = $this->authService->authenticate($credentials);
 
-        // Tentative de connexion avec les informations d'identification fournies
-        if (Auth::attempt($credentials)) {
-            // Si l'authentification est réussie, redirigez l'utilisateur
-            $user = User::find(Auth::user()->id);
-           // dd($user); // Récupérer l'utilisateur connecté
-            $token = $user->createToken('LaravelPassportAuth',)->accessToken; // Créer un token si vous utilisez Laravel Passport
-            
-            return response()->json([
-                'message' => 'Connexion réussie',
-                'user' => $user,
-                'token' => $token
-            ], 200);
-        } else {
-            // Si l'authentification échoue, renvoyez une réponse avec une erreur
-            return response()->json(['message' => 'Informations d\'identification invalides'], 401);
+        if ($token) {
+            return response()->json(['token' => $token], 200);
         }
+
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+    public function logout()
+    {
+        $this->authService->logout();
+        return response()->json(['message' => 'Successfully logged out'], 200);
     }
 }

@@ -13,6 +13,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\ClientResource;
 use App\Http\Resources\UserResource;
 use App\Traits\ApiResponseTrait;
+use App\Facades\ClientServiceFacade;
 use GuzzleHttp\Client as GuzzleHttpClient;
 
 /**
@@ -91,85 +92,90 @@ class ClientController extends Controller
  *     security={{"BearerToken": {}}}
  * )
  */
-        public function index(Request $request)
-        {
-            // Récupération des paramètres de requête
-            $telephones = $request->query('telephone');
-            $surnom = $request->query('surnom');
-            $includeUser = $request->query('include') === 'user';
-            $comptes = $request->query('comptes'); // Récupération du paramètre comptes
-            $active = $request->query('active'); // Récupération du paramètre active
+        // public function index(Request $request)
+        // {
+        //     // Récupération des paramètres de requête
+        //     $telephones = $request->query('telephone');
+        //     $surnom = $request->query('surnom');
+        //     $includeUser = $request->query('include') === 'user';
+        //     $comptes = $request->query('comptes'); // Récupération du paramètre comptes
+        //     $active = $request->query('active'); // Récupération du paramètre active
         
-            // Construction de la requête
-            $query = Client::query();
+        //     // Construction de la requête
+        //     $query = Client::query();
         
-            // Jointure avec la table 'users' pour accéder à la colonne 'active'
-            $query->leftJoin('users', 'clients.user_id', '=', 'users.id');
+        //     // Jointure avec la table 'users' pour accéder à la colonne 'active'
+        //     $query->leftJoin('users', 'clients.user_id', '=', 'users.id');
         
-            // Sélectionner les colonnes nécessaires
-            $query->select('clients.*', 'users.active');
+        //     // Sélectionner les colonnes nécessaires
+        //     $query->select('clients.*', 'users.active');
         
-            // Application des filtres si des numéros de téléphone ou un surnom sont fournis
-            if ($telephones) {
-                if (!is_array($telephones)) {
-                    $telephones = explode(',', $telephones);
-                }
-                $query->whereIn('clients.telephone', $telephones);
-            }
+        //     // Application des filtres si des numéros de téléphone ou un surnom sont fournis
+        //     if ($telephones) {
+        //         if (!is_array($telephones)) {
+        //             $telephones = explode(',', $telephones);
+        //         }
+        //         $query->whereIn('clients.telephone', $telephones);
+        //     }
         
-            if ($surnom) {
-                $query->where('clients.surnom', 'like', '%' . $surnom . '%');
-            }
+        //     if ($surnom) {
+        //         $query->where('clients.surnom', 'like', '%' . $surnom . '%');
+        //     }
         
-            // Filtrer les clients ayant des comptes associés selon la valeur du paramètre 'comptes'
-            if ($comptes) {
-                if ($comptes === 'oui') {
-                    $query->whereNotNull('clients.user_id');
-                } elseif ($comptes === 'non') {
-                    $query->whereNull('clients.user_id');
-                }
-            }
+        //     // Filtrer les clients ayant des comptes associés selon la valeur du paramètre 'comptes'
+        //     if ($comptes) {
+        //         if ($comptes === 'oui') {
+        //             $query->whereNotNull('clients.user_id');
+        //         } elseif ($comptes === 'non') {
+        //             $query->whereNull('clients.user_id');
+        //         }
+        //     }
         
-            // Filtrer les clients selon le paramètre 'active'
-            if ($active) {
-                if ($active === 'oui') {
-                    $query->where('users.active', true);
-                } elseif ($active === 'non') {
-                    $query->where('users.active', false);
-                }
-            }
+        //     // Filtrer les clients selon le paramètre 'active'
+        //     if ($active) {
+        //         if ($active === 'oui') {
+        //             $query->where('users.active', true);
+        //         } elseif ($active === 'non') {
+        //             $query->where('users.active', false);
+        //         }
+        //     }
         
-            // Inclure les informations de l'utilisateur si le paramètre 'include' est 'user'
-            if ($includeUser) {
-                $query->addSelect('users.*');
-            }
+        //     // Inclure les informations de l'utilisateur si le paramètre 'include' est 'user'
+        //     if ($includeUser) {
+        //         $query->addSelect('users.*');
+        //     }
         
-            // Utilisation du Lazy Query Builder
-            $clients = $query->cursor(); 
+        //     // Utilisation du Lazy Query Builder
+        //     $clients = $query->cursor(); 
         
-            // Traitement des clients
-            $data = [];
-            foreach ($clients as $client) {
-                $clientData = [
-                    'id' => $client->id,
-                    'surnom' => $client->surnom,
-                    'adresse' => $client->adresse,
-                    'telephone' => $client->telephone,
-                ];
+        //     // Traitement des clients
+        //     $data = [];
+        //     foreach ($clients as $client) {
+        //         $clientData = [
+        //             'id' => $client->id,
+        //             'surnom' => $client->surnom,
+        //             'adresse' => $client->adresse,
+        //             'telephone' => $client->telephone,
+        //         ];
         
-                if ($includeUser && $client->user_id) {
-                    $clientData['user'] = [
-                        'id' => $client->user_id,
-                        'active' => $client->active,
-                        // Inclure d'autres informations sur l'utilisateur si nécessaire
-                    ];
-                }
+        //         if ($includeUser && $client->user_id) {
+        //             $clientData['user'] = [
+        //                 'id' => $client->user_id,
+        //                 'active' => $client->active,
+        //                 // Inclure d'autres informations sur l'utilisateur si nécessaire
+        //             ];
+        //         }
         
-                $data[] = $clientData;
-            }
+        //         $data[] = $clientData;
+        //     }
         
-            // Retourner une réponse JSON
-            return $this->sendResponse(200, $data, 'Liste des clients récupérée avec succès.');
+        //     // Retourner une réponse JSON
+        //     return $this->sendResponse(200, $data, 'Liste des clients récupérée avec succès.');
+        // }
+
+        public function findByTelephone(Request $request) {
+            $telephone=$request->input('telephone'); 
+            return  ClientServiceFacade::findByTelephone($telephone);
         }
       /**
  * @OA\Post(
@@ -200,32 +206,32 @@ class ClientController extends Controller
  * )
  */  
         //find client by phone
-        public function findByTelephone(Request $request)
-        {
-            // Valider la requête pour s'assurer qu'un numéro de téléphone est fourni
-            $validatedData = $request->validate([
-                'telephone' => 'required|string|max:9',
-            ]);
+        // public function findByTelephone(Request $request)
+        // {
+        //     // Valider la requête pour s'assurer qu'un numéro de téléphone est fourni
+        //     $validatedData = $request->validate([
+        //         'telephone' => 'required|string|max:9',
+        //     ]);
 
-            // Rechercher le client par son numéro de téléphone
-            $client = Client::where('telephone', $validatedData['telephone'])->first();
+        //     // Rechercher le client par son numéro de téléphone
+        //     $client = Client::where('telephone', $validatedData['telephone'])->first();
 
-            // Vérifier si un client a été trouvé
-            if (!$client) {
-                return response()->json([
-                    'status' => 404,
-                    'data' => 'null',
-                    'message' => 'Pas Client'
-                ], 404);
-            }
+        //     // Vérifier si un client a été trouvé
+        //     if (!$client) {
+        //         return response()->json([
+        //             'status' => 404,
+        //             'data' => 'null',
+        //             'message' => 'Pas Client'
+        //         ], 404);
+        //     }
 
-            // Retourner le client trouvé
-            return response()->json([
-                'status' => 200,
-                'data' => $client,
-                'message' => 'liste client'
-            ], 200);
-        }
+        //     // Retourner le client trouvé
+        //     return response()->json([
+        //         'status' => 200,
+        //         'data' => $client,
+        //         'message' => 'liste client'
+        //     ], 200);
+        // }
 
         
     //get clients by phone
@@ -285,32 +291,32 @@ class ClientController extends Controller
 
 
     public function showClientWithUser($id)
-{
-    try {
-        // Récupérer le client avec les informations de l'utilisateur associé
-        $client = Client::with('user')->find($id);
+    {
+        try {
+            // Récupérer le client avec les informations de l'utilisateur associé
+            $client = Client::with('user')->find($id);
 
-        // Vérifier si le client existe
-        if (!$client) {
+            // Vérifier si le client existe
+            if (!$client) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Client not found'
+                ], 404);
+            }
+
+            // Retourner les données du client avec l'utilisateur associé
             return response()->json([
-                'status' => 404,
-                'message' => 'Client not found'
-            ], 404);
+                'status' => 200,
+                'client' => $client
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Erreur lors de la récupération du client: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Retourner les données du client avec l'utilisateur associé
-        return response()->json([
-            'status' => 200,
-            'client' => $client
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 500,
-            'message' => 'Erreur lors de la récupération du client: ' . $e->getMessage()
-        ], 500);
     }
-}
 /**
  * @OA\Post(
  *     path="/clients",
@@ -322,7 +328,7 @@ class ClientController extends Controller
  *             required={"surnom", "adresse", "telephone"},
  *             @OA\Property(property="surnom", type="string", example="ClientSurnom"),
  *             @OA\Property(property="adresse", type="string", example="ClientAdresse"),
- *             @OA\Property(property="telephone", type="string", example="123456789"),
+ *             @OA\Property(property="telephone", type="string", example="784316538"),
  *             @OA\Property(property="user", type="object", description="Détails de l'utilisateur associé"),
  *             @OA\Property(property="photo", type="string", format="binary")
  *         )

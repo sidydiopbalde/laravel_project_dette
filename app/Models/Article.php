@@ -5,18 +5,41 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Article extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-    // Définissez la table si elle n'est pas le pluriel du modèle
     protected $table = 'articles';
 
-    // Spécifiez les attributs qui peuvent être assignés en masse
-    protected $fillable = ['libelle', 'qte','prix_unitaire'];
+    protected $fillable = ['libelle', 'qte', 'prix_unitaire'];
+
     protected $guarded = ['id'];
+
     protected $hidden = ['id', 'created_at', 'updated_at'];
-    // Spécifiez la colonne pour les soft deletes (facultatif, Laravel utilise par défaut 'deleted_at')
+
     protected $dates = ['deleted_at'];
+
+    // Exemple de méthode filter
+    public function filter(array $filters)
+    {
+        $query = $this->newQuery();
+
+        if (isset($filters['libelle'])) {
+            $query->where('libelle', 'LIKE', '%' . $filters['libelle'] . '%');
+        }
+
+        if (isset($filters['qte'])) {
+            $query->where('qte', $filters['qte']);
+        }
+
+        if (isset($filters['prix_unitaire'])) {
+            $query->where('prix_unitaire', $filters['prix_unitaire']);
+        }
+
+        // Ajoutez d'autres filtres selon les besoins
+
+        return $query->get();
+    }
 }
+

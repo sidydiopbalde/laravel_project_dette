@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateArticleRequest;
 use App\Http\Requests\UpdateArticlestockRequest;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ArticleResource;
+use App\Services\ArticleService;
 use App\Traits\ApiResponseTrait;
 
 /**
@@ -54,6 +55,12 @@ class ArticleController extends Controller
 {
     use ApiResponseTrait;
 
+    protected $service;
+
+    public function __construct(ArticleService $service)
+    {
+        $this->service = $service;
+    }
     /**
      * @OA\Get(
      *     path="/api/articles",
@@ -73,45 +80,51 @@ class ArticleController extends Controller
      *     )
      * )
      */
-    public function index(Request $request)
+    // public function index(Request $request)
+    // {
+    //     // Vérifiez l'accès avec la policy
+    //     $this->authorize('access', Article::class);
+    
+    //     $libelle = $request->input('libelle');
+    //     $disponible = $request->input('disponible');
+    
+    //     $query = Article::query();
+    
+    //     if ($libelle) {
+    //         $query->where('libelle', 'like', '%' . $libelle . '%');
+    //     }
+    
+    //     if ($disponible) {
+    //         if ($disponible === 'oui') {
+    //             $query->where('qte', '>', 0); // Article disponible si qte > 0
+    //         } elseif ($disponible === 'non') {
+    //             $query->where('qte', '=', 0); // Article non disponible si qte = 0
+    //         }
+    //     }
+    
+    //     $articles = $query->paginate(2);
+    
+    //     if ($articles->isEmpty()) {
+    //         return response()->json([
+    //             'status' => 411,
+    //             'data' => null,
+    //             'message' => 'Objet non trouvé.',
+    //         ], 411);
+    //     }
+    
+    //     return response()->json([
+    //         'status' => 200,
+    //         'data' => $articles,
+    //         'message' => 'Liste des articles récupérée avec succès.',
+    //     ]);
+    // }
+    
+
+    public function index()
     {
-        // Vérifiez l'accès avec la policy
-        $this->authorize('access', Article::class);
-    
-        $libelle = $request->input('libelle');
-        $disponible = $request->input('disponible');
-    
-        $query = Article::query();
-    
-        if ($libelle) {
-            $query->where('libelle', 'like', '%' . $libelle . '%');
-        }
-    
-        if ($disponible) {
-            if ($disponible === 'oui') {
-                $query->where('qte', '>', 0); // Article disponible si qte > 0
-            } elseif ($disponible === 'non') {
-                $query->where('qte', '=', 0); // Article non disponible si qte = 0
-            }
-        }
-    
-        $articles = $query->paginate(2);
-    
-        if ($articles->isEmpty()) {
-            return response()->json([
-                'status' => 411,
-                'data' => null,
-                'message' => 'Objet non trouvé.',
-            ], 411);
-        }
-    
-        return response()->json([
-            'status' => 200,
-            'data' => $articles,
-            'message' => 'Liste des articles récupérée avec succès.',
-        ]);
+        $articles = $this->service->all();
+        return response()->json($articles);
     }
-    
     
         /**
      * @OA\Post(
@@ -134,29 +147,33 @@ class ArticleController extends Controller
      * )
      */
     
-    public function store(StoreArticleRequest $request)
-    {
-        // Les données sont déjà validées par StoreArticleRequest
-        $validated = $request->validated();
-        
-        // Création de l'article
-        $article = Article::create($validated);
+     public function store(StoreArticleRequest $request)
+     {
+         // Les données sont déjà validées par StoreArticleRequest
+         $validated = $request->validated();
+     
+         // Utiliser le service pour créer l'article
+         $article = $this->service->create($validated);
+     
+         return response()->json($article, 201);
+     }
     
-        // return $this->sendResponse(201, ArticleResource::collection($article), 'L\'article ajouté avec succès.');
-        return response()->json($article, 201);
-    } // Retourne l'article créé en JSON avec un code de statut 201
     
     /**
      * Display the specified resource.
      */
     public function show($id)
     {
-        $article = Article::find($id);
+        // Utiliser le service pour récupérer l'article
+        $article = $this->service->find($id);
+    
         if (!$article) {
-            return response()->json(['message' => 'article not found'], 404);
+            return response()->json(['message' => 'Article not found'], 404);
         }
-        return response()->json($article, 201); 
+    
+        return response()->json($article, 200); 
     }
+    
     
     /**
      * @OA\Get(
@@ -178,10 +195,7 @@ class ArticleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Article $article)
-    {
-        //
-    }
+   
 
     /**
      * Update the specified resource in storage.
@@ -226,28 +240,18 @@ class ArticleController extends Controller
      * )
      */
 //update Article by id
-    public function update(UpdateArticleRequest $request, $id)
-    {
-        $article = Article::find($id);
-    //    dd($article);
-        if (!$article) {
-            return response()->json(['error' => 'Article non trouvé'], 404);
-        }
-        
-        try {
-            // Mettre à jour l'article augmenter le stock 
-            $article->qte += $request->input('qte');  // Augmenter la quantité en stock par la quantité fournie dans la requête
-            
-            $article->save([
-                 'qte' => $article->qte,  
-            ]);
-          
-     
+        public function update(UpdateArticleRequest $request, $id)
+        {
+            // Utiliser le service pour mettre à jour l'article
+            $article = $this->service->update($id, $request->input('qte'));
+
+            if (!$article) {
+                return response()->json(['error' => 'Article non trouvé'], 404);
+            }
+
             return response()->json(['article' => $article, 'message' => 'Article mis à jour avec succès']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erreur lors de la mise à jour de l\'article'], 500);
         }
-    }
+
 
     /**
      * @OA\Patch(
@@ -266,49 +270,57 @@ class ArticleController extends Controller
      * )
      */
     //update un ou plusieurs articles
+//     public function updateQuantities(UpdateArticlestockRequest $request)
+// {
+//     $validated = $request->validated();
+//     $failedUpdates = []; // Tableau pour stocker les articles dont la mise à jour a échoué
+//     $successfulUpdates = []; // Tableau pour stocker les articles mis à jour avec succès
+
+//     foreach ($validated['articles'] as $articleData) {
+//         $article = Article::find($articleData['id']);
+//         if ($article) {
+//             // Mise à jour de la quantité de l'article
+//             $article->qte += $articleData['qte'];
+//             $article->save();
+
+//             // Ajouter les informations de l'article mis à jour avec succès
+//             $successfulUpdates[] = [
+//                 'id' => $article->id,
+//                 'qte' => $article->qte
+//             ];
+//         } else {
+//             // Ajouter les informations de l'article qui n'a pas pu être mis à jour
+//             $failedUpdates[] = [
+//                 'id' => $articleData['id'],
+//                 'qte' => $articleData['qte']
+//             ];
+//         }
+//     }
+
+//     // Préparer la réponse
+//     $response = [
+//         'message' => 'Les articles ont été mis à jour avec succès.',
+//         'successful_updates' => $successfulUpdates,
+//         'failed_updates' => $failedUpdates,
+//     ];
+
+//     // Si des mises à jour ont échoué, modifier le message
+//     if (!empty($failedUpdates)) {
+//         $response['message'] = 'Certaines mises à jour ont échoué.';
+//     }
+
+//     return response()->json($response);
+// }
+
     public function updateQuantities(UpdateArticlestockRequest $request)
-{
-    $validated = $request->validated();
-    $failedUpdates = []; // Tableau pour stocker les articles dont la mise à jour a échoué
-    $successfulUpdates = []; // Tableau pour stocker les articles mis à jour avec succès
+    {
+        $validated = $request->validated();
 
-    foreach ($validated['articles'] as $articleData) {
-        $article = Article::find($articleData['id']);
-        if ($article) {
-            // Mise à jour de la quantité de l'article
-            $article->qte += $articleData['qte'];
-            $article->save();
+        // Appeler le service pour mettre à jour les quantités
+        $response = $this->service->updateArticleQuantities($validated['articles']);
 
-            // Ajouter les informations de l'article mis à jour avec succès
-            $successfulUpdates[] = [
-                'id' => $article->id,
-                'qte' => $article->qte
-            ];
-        } else {
-            // Ajouter les informations de l'article qui n'a pas pu être mis à jour
-            $failedUpdates[] = [
-                'id' => $articleData['id'],
-                'qte' => $articleData['qte']
-            ];
-        }
+        return response()->json($response);
     }
-
-    // Préparer la réponse
-    $response = [
-        'message' => 'Les articles ont été mis à jour avec succès.',
-        'successful_updates' => $successfulUpdates,
-        'failed_updates' => $failedUpdates,
-    ];
-
-    // Si des mises à jour ont échoué, modifier le message
-    if (!empty($failedUpdates)) {
-        $response['message'] = 'Certaines mises à jour ont échoué.';
-    }
-
-    return response()->json($response);
-}
-
-    
     //Get clients with  with account
     
 /**
@@ -333,9 +345,17 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
-        $article->delete(); // Effectue la suppression logique
-
+        $this->service->delete($article->id);
+    
         return response()->json(['message' => 'Article supprimé avec succès']);
     }
     
+    
+
+    // public function filter(Request $request)
+    // {
+    //     $filters = $request->only(['libelle', 'qte', 'prix_unitaire']);
+    //     $articles = $this->service->filter($filters);
+    //     return response()->json($articles);
+    // }
 }
