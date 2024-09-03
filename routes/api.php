@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DetteController;
+use App\Http\Middleware\ApiResponseMiddleware;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login'); // Route pour la connexion
@@ -37,7 +38,7 @@ Route::prefix('clients')->middleware('auth:api')->middleware(['auth:api', 'can:a
 });
 
 // Routes pour les articles, protégées par Passport
-Route::prefix('articles')->middleware('auth:sanctum')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
+Route::middleware([ApiResponseMiddleware::class])->prefix('articles')->middleware('auth:sanctum')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
     Route::get('/', [ArticleController::class, 'index'])->name('articles.index'); // Afficher la liste des articles
     Route::get('{id}', [ArticleController::class, 'show'])->name('articles.show'); // Afficher un article spécifique
     Route::get('/clients/{clientId}/dettes', [DetteController::class, 'index']);
@@ -48,6 +49,7 @@ Route::prefix('articles')->middleware('auth:sanctum')->middleware(['auth:api', '
     Route::patch('stock', [ArticleController::class, 'updateQuantities']); // Mettre à jour la quantité des articles
     Route::patch('{id}', [ArticleController::class, 'update'])->name('articles.update'); // Mettre à jour un article spécifique
     Route::delete('{id}', [ArticleController::class, 'destroy'])->name('articles.destroy'); // Supprimer un article spécifique
+    Route::post('{id}', [ArticleController::class, 'destroy'])->name('articles.destroy'); // Supprimer un article spécifique
 
 });
 //Routes pour les clients

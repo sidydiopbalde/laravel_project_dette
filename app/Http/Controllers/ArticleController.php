@@ -13,7 +13,7 @@ use App\Services\ArticleService;
 use App\Traits\ApiResponseTrait;
 
 /**
- * @OA\Schema(
+ * @OA\Schema(ArticleService
  *     schema="UpdateArticleRequest",
  *     type="object",
  *     required={"qte"},
@@ -352,10 +352,10 @@ class ArticleController extends Controller
     
     
 
-    // public function filter(Request $request)
-    // {
-    //     $filters = $request->only(['libelle', 'qte', 'prix_unitaire']);
-    //     $articles = $this->service->filter($filters);
-    //     return response()->json($articles);
-    // }
+    public function filter(Request $request)
+    {
+        $filters = $request->only(['libelle', 'qte', 'prix_unitaire']);
+        $articles = $this->service->findByLibelle($filters);
+        return response()->json($articles);
+    }
 }

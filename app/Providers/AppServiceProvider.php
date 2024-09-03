@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(ArticleRepository::class, ArticleRepositoryImpl::class);
-        // $this->app->bind(ArticleService::class, ArticleServiceImpl::class);
+         $this->app->bind(ArticleService::class, ArticleServiceImpl::class);
         // $this->app->singleton(ClientService::class, ClientServiceImpl::class);
 
         // Enregistrement du nom pour la facade

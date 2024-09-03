@@ -26,6 +26,11 @@ class ClientRepositoryImpl implements ClientRepository
     {
         return Client::create($data);
     }
+
+    public function store(array $data)
+    {
+        return Client::create($data);
+    }
     public function createUser(array $data)
     {
         return User::create($data);

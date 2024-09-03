@@ -38,11 +38,15 @@ class ArticleRepositoryImpl implements ArticleRepository
         return $this->model->destroy($id);
     }
 
+    // public function findByLibelle($libelle)
+    // {
+    //     return $this->model->where('libelle', $libelle)->get();
+    // }
     public function findByLibelle($libelle)
     {
-        return $this->model->where('libelle', $libelle)->get();
-    }
+        return $this->model->libelle($libelle)->get();
 
+    }
     public function findByEtat($etat)
     {
         return $this->model->where('etat', $etat)->get();

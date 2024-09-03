@@ -21,25 +21,30 @@ class Article extends Model
     protected $dates = ['deleted_at'];
 
     // Exemple de méthode filter
-    public function filter(array $filters)
+    // public function filter(array $filters)
+    // {
+    //     $query = $this->newQuery();
+
+    //     if (isset($filters['libelle'])) {
+    //         $query->where('libelle', 'LIKE', '%' . $filters['libelle'] . '%');
+    //     }
+
+    //     if (isset($filters['qte'])) {
+    //         $query->where('qte', $filters['qte']);
+    //     }
+
+    //     if (isset($filters['prix_unitaire'])) {
+    //         $query->where('prix_unitaire', $filters['prix_unitaire']);
+    //     }
+
+    //     // Ajoutez d'autres filtres selon les besoins
+
+    //     return $query->get();
+    // }
+
+    public function scopeLibelle($query, $libelle)
     {
-        $query = $this->newQuery();
-
-        if (isset($filters['libelle'])) {
-            $query->where('libelle', 'LIKE', '%' . $filters['libelle'] . '%');
-        }
-
-        if (isset($filters['qte'])) {
-            $query->where('qte', $filters['qte']);
-        }
-
-        if (isset($filters['prix_unitaire'])) {
-            $query->where('prix_unitaire', $filters['prix_unitaire']);
-        }
-
-        // Ajoutez d'autres filtres selon les besoins
-
-        return $query->get();
+        return $query->where('libelle', $libelle);
     }
 }
 

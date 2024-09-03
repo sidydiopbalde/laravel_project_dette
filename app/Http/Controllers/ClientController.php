@@ -14,6 +14,8 @@ use App\Http\Resources\ClientResource;
 use App\Http\Resources\UserResource;
 use App\Traits\ApiResponseTrait;
 use App\Facades\ClientServiceFacade;
+use App\Models\User;
+use App\Facades\ImageUploadFacade;
 use GuzzleHttp\Client as GuzzleHttpClient;
 
 /**
@@ -272,23 +274,28 @@ class ClientController extends Controller
  */
      // Affiche un utilisateur spécifique par son ID
      public function show(Request $request, $id)
-    {
-        // Récupération du paramètre pour inclure les informations de l'utilisateur
-        $includeUser = $request->query('include') === 'user';
-
-        // Récupération du client avec les informations de l'utilisateur si demandé
-        $client = Client::with($includeUser ? 'user' : [])
-            ->find($id);
-
-        // Vérifier si le client existe
-        if (!$client) {
-            return response()->json(['message' => 'Client not found'], 404);
+     {
+         // Récupération du paramètre pour inclure les informations de l'utilisateur
+         $includeUser = $request->query('include') === 'user';
+     
+         // Récupération du client avec les informations de l'utilisateur si demandé
+         $client = Client::with($includeUser ? 'user' : [])->find($id);
+     
+         // Vérifier si le client existe
+         if (!$client) {
+             return response()->json(['message' => 'Client not found'], 404);
+         }
+     
+         // Si l'utilisateur existe et qu'il a une photo, la convertir en base64
+         if ($includeUser && $client->user && $client->user->photo) {
         }
-
-        // Retourner les données du client
-        return response()->json($client);
-    }
-
+        
+        $client->user->photo = ImageUploadFacade::getBase64($client->user->photo);
+        dd($client->user->photo);
+         // Retourner les données du client
+         return response()->json($client);
+     }
+     
 
     public function showClientWithUser($id)
     {
@@ -350,50 +357,87 @@ class ClientController extends Controller
  * )
  */
      // Crée un nouveau clientpublic function store(StoreRequest $request)
-     public function store(StoreRequest $request)
-     {
-         try {
-             // Début de la transaction
-             DB::beginTransaction();
+    //  public function store(StoreRequest $request)
+    //  {
+    //      try {
+    //          // Début de la transaction
+    //          DB::beginTransaction();
              
-             // Création de l'utilisateur, si fourni
-             $user = null;
-             if ($request->has('user')) {
-                 $userData = $request->input('user');
-                 $userData['password'] = bcrypt($userData['password']);
-                 $user = Users::create($userData);
-             }
+    //          // Création de l'utilisateur, si fourni
+    //          $user = null;
+    //          if ($request->has('user')) {
+    //              $userData = $request->input('user');
+    //              $userData['password'] = bcrypt($userData['password']);
+    //              $user = Users::create($userData);
+    //          }
              
-             // Création du client
-             $clientData = $request->validated();
-             $clientData['user_id'] = $user ? $user->id : null;
+    //          // Création du client
+    //          $clientData = $request->validated();
+    //          $clientData['user_id'] = $user ? $user->id : null;
      
-             // Gestion du fichier de la photo
-             if ($request->hasFile('photo')) {
-                 $filePath = $request->file('photo')->store('photos', 'public');
-                 $userData['photo'] = $filePath;
-             }
+    //          // Gestion du fichier de la photo
+    //          if ($request->hasFile('photo')) {
+    //              $filePath = $request->file('photo')->store('photos', 'public');
+    //              $userData['photo'] = $filePath;
+    //          }
      
-             $client = Client::create($clientData);
+    //          $client = Client::create($clientData);
      
-             // Associer le client à l'utilisateur, si existant
-             if ($user) {
-                 $client->user()->associate($user);
-             }
+    //          // Associer le client à l'utilisateur, si existant
+    //          if ($user) {
+    //              $client->user()->associate($user);
+    //          }
      
-             $client->save();
+    //          $client->save();
      
-             // Validation de la transaction
-             DB::commit();
+    //          // Validation de la transaction
+    //          DB::commit();
      
-             return $this->sendResponse(200, new ClientResource($client), 'Client créé avec succès.');
-         } catch (\Exception $e) {
-             // En cas d'erreur, annuler la transaction
-             DB::rollBack();
+    //          return $this->sendResponse(200, new ClientResource($client), 'Client créé avec succès.');
+    //      } catch (\Exception $e) {
+    //          // En cas d'erreur, annuler la transaction
+    //          DB::rollBack();
      
-             return $this->sendResponse(500, null, 'Erreur lors de la création du client: ' . $e->getMessage());
+    //          return $this->sendResponse(500, null, 'Erreur lors de la création du client: ' . $e->getMessage());
+    //      }
+    //  }
+       public function store(StoreRequest $request){
+        
+         // Récupération des données du client et du user
+         $clientData = request()->validate([
+            'surnom' =>'required|string',
+             'adresse' =>'required|string',
+             'telephone' =>'required|string|max:9',
+             'user' => 'array',
+             'user.email' =>'required|email',
+             'user.password' => 'nullable|string|min:8|confirmed',
+             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+         ]);
+      
+         $userData = $clientData['user'];
+         $userData['password'] =  bcrypt($userData['password']);
+      
+         // Création du user
+         $user = User::create($userData);
+         $user->save();
+         // Création du client
+         $clientData['user_id'] = $user->id;
+
+         // Gestion du fichier de la photo
+         if($request->hasFile('photo')){
+             $photo = $request->file('photo');
+             $photoName = time(). '.'. $photo->getClientOriginalExtension();
+             $photo->move(public_path('images'), $photoName);
+             $clientData['photo'] = $photoName;
          }
-     }
-         
+
+         $client = ClientServiceFacade::create($clientData);
+
+         return response()->json([
+            'status' => 200,
+             'data' => $client,
+             'message' => 'Client created successfully'
+         ], 200);
+       }  
 
     }

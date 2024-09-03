@@ -18,6 +18,7 @@ interface ClientRepository
      * @return \App\Models\Client
      */
     public function create(array $data);
+    public function store(array $data);
     public function createUser(array $data);
 
     /**
