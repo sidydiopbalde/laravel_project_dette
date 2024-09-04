@@ -175,10 +175,6 @@ class ClientController extends Controller
         //     return $this->sendResponse(200, $data, 'Liste des clients récupérée avec succès.');
         // }
 
-        public function findByTelephone(Request $request) {
-            $telephone=$request->input('telephone'); 
-            return  ClientServiceFacade::findByTelephone($telephone);
-        }
       /**
  * @OA\Post(
  *     path="/api/clients/telephone",
@@ -207,39 +203,15 @@ class ClientController extends Controller
  *     security={{"BearerToken": {}}}
  * )
  */  
-        //find client by phone
-        // public function findByTelephone(Request $request)
-        // {
-        //     // Valider la requête pour s'assurer qu'un numéro de téléphone est fourni
-        //     $validatedData = $request->validate([
-        //         'telephone' => 'required|string|max:9',
-        //     ]);
+  
+ public function findByTelephone(Request $request) {
 
-        //     // Rechercher le client par son numéro de téléphone
-        //     $client = Client::where('telephone', $validatedData['telephone'])->first();
-
-        //     // Vérifier si un client a été trouvé
-        //     if (!$client) {
-        //         return response()->json([
-        //             'status' => 404,
-        //             'data' => 'null',
-        //             'message' => 'Pas Client'
-        //         ], 404);
-        //     }
-
-        //     // Retourner le client trouvé
-        //     return response()->json([
-        //         'status' => 200,
-        //         'data' => $client,
-        //         'message' => 'liste client'
-        //     ], 200);
-        // }
+    $telephone = $request->input('telephone');
+    return  ClientServiceFacade::findByTelephone($telephone);
+    
+}   
 
         
-    //get clients by phone
-    public function getByPhone($phone){ 
-        return Client::where('telephone', $phone)->first();
-    }
 /**
  * @OA\Get(
  *     path="/api/clients/{id}",
@@ -272,31 +244,21 @@ class ClientController extends Controller
  *     security={{"BearerToken": {}}}
  * )
  */
-     // Affiche un utilisateur spécifique par son ID
-     public function show(Request $request, $id)
-     {
-         // Récupération du paramètre pour inclure les informations de l'utilisateur
-         $includeUser = $request->query('include') === 'user';
-     
-         // Récupération du client avec les informations de l'utilisateur si demandé
-         $client = Client::with($includeUser ? 'user' : [])->find($id);
-     
-         // Vérifier si le client existe
-         if (!$client) {
-             return response()->json(['message' => 'Client not found'], 404);
-         }
-     
-         // Si l'utilisateur existe et qu'il a une photo, la convertir en base64
-         if ($includeUser && $client->user && $client->user->photo) {
-        }
-        
-        $client->user->photo = ImageUploadFacade::getBase64($client->user->photo);
-        dd($client->user->photo);
-         // Retourner les données du client
-         return response()->json($client);
-     }
-     
 
+     
+    public function show(Request $request, $id)
+    {
+        $includeUser = $request->query('include') === 'user';
+
+        try {
+            $client = ClientServiceFacade::getClientById($id, $includeUser);
+            return response()->json($client);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        }
+    }
+
+  
     public function showClientWithUser($id)
     {
         try {
@@ -326,7 +288,7 @@ class ClientController extends Controller
     }
 /**
  * @OA\Post(
- *     path="/clients",
+ *     path="/api/clients",
  *     summary="Créer un client",
  *     tags={"Clients"},
  *     @OA\RequestBody(
@@ -356,6 +318,28 @@ class ClientController extends Controller
  *     security={{"BearerToken": {}}}
  * )
  */
+
+ public function store(StoreRequest $request)
+ {
+     try {
+         // Appel du service pour créer un client
+         $client =ClientServiceFacade::createClient($request);
+
+         // Retourner une réponse JSON avec les détails du client
+         return response()->json([
+             'success' => true,
+             'message' => 'Client créé avec succès',
+             'client' => $client,
+         ], 201);
+
+     } catch (\Exception $e) {
+         // En cas d'erreur, retourner une réponse JSON avec un message d'erreur
+         return response()->json([
+             'success' => false,
+             'message' => $e->getMessage(),
+         ], 500);
+     }
+ }
      // Crée un nouveau clientpublic function store(StoreRequest $request)
     //  public function store(StoreRequest $request)
     //  {
@@ -401,43 +385,43 @@ class ClientController extends Controller
     //          return $this->sendResponse(500, null, 'Erreur lors de la création du client: ' . $e->getMessage());
     //      }
     //  }
-       public function store(StoreRequest $request){
+    //    public function store(StoreRequest $request){
         
-         // Récupération des données du client et du user
-         $clientData = request()->validate([
-            'surnom' =>'required|string',
-             'adresse' =>'required|string',
-             'telephone' =>'required|string|max:9',
-             'user' => 'array',
-             'user.email' =>'required|email',
-             'user.password' => 'nullable|string|min:8|confirmed',
-             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-         ]);
+    //      // Récupération des données du client et du user
+    //      $clientData = request()->validate([
+    //         'surnom' =>'required|string',
+    //          'adresse' =>'required|string',
+    //          'telephone' =>'required|string|max:9',
+    //          'user' => 'array',
+    //          'user.email' =>'required|email',
+    //          'user.password' => 'nullable|string|min:8|confirmed',
+    //          'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+    //      ]);
       
-         $userData = $clientData['user'];
-         $userData['password'] =  bcrypt($userData['password']);
+    //      $userData = $clientData['user'];
+    //      $userData['password'] =  bcrypt($userData['password']);
       
-         // Création du user
-         $user = User::create($userData);
-         $user->save();
-         // Création du client
-         $clientData['user_id'] = $user->id;
+    //      // Création du user
+    //      $user = User::create($userData);
+    //      $user->save();
+    //      // Création du client
+    //      $clientData['user_id'] = $user->id;
 
-         // Gestion du fichier de la photo
-         if($request->hasFile('photo')){
-             $photo = $request->file('photo');
-             $photoName = time(). '.'. $photo->getClientOriginalExtension();
-             $photo->move(public_path('images'), $photoName);
-             $clientData['photo'] = $photoName;
-         }
+    //      // Gestion du fichier de la photo
+    //      if($request->hasFile('photo')){
+    //          $photo = $request->file('photo');
+    //          $photoName = time(). '.'. $photo->getClientOriginalExtension();
+    //          $photo->move(public_path('images'), $photoName);
+    //          $clientData['photo'] = $photoName;
+    //      }
 
-         $client = ClientServiceFacade::create($clientData);
+    //      $client = ClientServiceFacade::create($clientData);
 
-         return response()->json([
-            'status' => 200,
-             'data' => $client,
-             'message' => 'Client created successfully'
-         ], 200);
-       }  
+    //      return response()->json([
+    //         'status' => 200,
+    //          'data' => $client,
+    //          'message' => 'Client created successfully'
+    //      ], 200);
+    //    }  
 
     }

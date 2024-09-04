@@ -30,7 +30,7 @@ class StoreRequest extends FormRequest
             'surnom' => 'required|string|max:255|unique:clients',
             'adresse' => 'required|string|max:255',
             'telephone' => ['required', 'string', 'max:15', 'unique:clients', new TelephoneRules()],
-            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation pour la photo
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048', // Validation pour la photo
             'user' => ['sometimes'],
             'user.prenom' => 'required|string|max:255',
             'user.nom' => 'required|string|max:255',

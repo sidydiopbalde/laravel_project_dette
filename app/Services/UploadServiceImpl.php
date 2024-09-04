@@ -3,8 +3,9 @@ namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+
 use App\Services\UploadService as UploadService;
-class UploadServiceImpl
+class UploadServiceImpl implements UploadService
 {
 
     public function upload(UploadedFile $file, $directory = 'images')
@@ -15,18 +16,13 @@ class UploadServiceImpl
         return $fileName;
     }
 
-    public function getBase64($filePath)
-    {
-        $path = public_path($filePath);
-        $fileData = file_get_contents($path);
-        dd(base64_encode($fileData)); 
 
-        return base64_encode($fileData);
-        // if (file_exists($path)) {
-        //     dd($path);
-        //     $fileData = file_get_contents($path);
-        //     return base64_encode($fileData);
-        // }
+    public function getBase64(string $path): string
+    {
+        if (Storage::disk('public')->exists($path)) {
+            $fileContent = Storage::disk('public')->get($path);
+            return base64_encode($fileContent);
+        }
 
         return null;
     }
