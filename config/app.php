@@ -181,6 +181,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\AuthCustomServiceProvider::class,
         App\Providers\ImageUploadServiceProvider::class,
+        App\Providers\EventServiceProvider::class,
 
     ])->toArray(),
 

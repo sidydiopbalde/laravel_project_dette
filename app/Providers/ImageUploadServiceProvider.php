@@ -6,7 +6,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Services\UploadServiceImpl;
-
+use App\Services\ImageUploadService;
 class ImageUploadServiceProvider extends ServiceProvider
 {
     /**
@@ -16,6 +16,9 @@ class ImageUploadServiceProvider extends ServiceProvider
     {
         $this->app->singleton('imageUploadService', function ($app) {
             return new UploadServiceImpl();
+        });
+        $this->app->singleton('UploadCloudImageFacade', function ($app) {
+            return new ImageUploadService();
         });
     }
 

@@ -56,6 +56,7 @@ class ClientRepositoryImpl implements ClientRepository
 
     public function createUser(array $data)
     {
+       
         try {
             return User::create($data);
         } catch (\Exception $e) {

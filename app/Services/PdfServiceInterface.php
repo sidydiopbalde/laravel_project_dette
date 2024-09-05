@@ -1,7 +1,7 @@
 <?php
 namespace App\Services;
 
-interface pdfServiceInterface 
+interface PdfServiceInterface 
 {
     
 public function generatePdf(string $view, array $data, string $pdfPath);

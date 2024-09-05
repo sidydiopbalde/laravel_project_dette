@@ -9,8 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 class ApiResponseMiddleware
 {
     public function handle(Request $request, Closure $next): Response
-    {
-        // Exécuter l'action suivante et obtenir la réponse
+    {        // Exécuter l'action suivante et obtenir la réponse
         $response = $next($request);
 
         // Vérifier si la réponse est déjà au format JSON
