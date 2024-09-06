@@ -2,42 +2,34 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Models\User;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-use App\Models\User;
 class UserCreated
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
-    /**
-     * Create a new event instance.
-     */
-   
+    use Dispatchable, SerializesModels;
 
     public $user;
     public $photo;
 
+    /**
+     * Create a new event instance.
+     *
+     * @param \App\Models\User $user
+     * @param mixed $photo
+     */
     public function __construct(User $user, $photo)
     {
         $this->user = $user;
         $this->photo = $photo;
+     
+        // dd($this->photo);
     }
-
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array
      */
-    public function broadcastOn(): array
-    {
-        return [
-            new PrivateChannel('channel-name'),
-        ];
-    }
+
 }

@@ -39,7 +39,7 @@ Route::prefix('clients')->middleware('auth:api')->middleware(['auth:api', 'can:a
 
 
 // Routes pour les articles, protégées par Passport
-Route::middleware([ApiResponseMiddleware::class])->prefix('articles')->middleware('auth:api')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
+Route::prefix('articles')->middleware('auth:api')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
     Route::get('/', [ArticleController::class, 'index'])->name('articles.index'); // Afficher la liste des articles
     Route::get('{id}', [ArticleController::class, 'show'])->name('articles.show'); // Afficher un article spécifique
     Route::get('/clients/{clientId}/dettes', [DetteController::class, 'index']);

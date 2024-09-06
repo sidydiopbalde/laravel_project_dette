@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Scopes\FilterScope;
+use App\Models\Scopes\FilterScope;
 class Client extends Model
 {
     use HasFactory;
@@ -23,12 +23,12 @@ class Client extends Model
      // Définir les attributs qui ne peuvent pas être assignés en masse
      protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    //  protected static function booted()
-    //  {
-    //      // Ajouter le scope global
-    //      static::addGlobalScope(new FilterScope(request()->all()));
-    //  }
-    // Définir la relation avec le modèle UserProfile
+     protected static function booted()
+     {
+         // Ajouter le scope global
+         static::addGlobalScope(new FilterScope(request()->all()));
+     }
+   // Définir la relation avec le modèle UserProfile
     public function user()
     {
         return $this->belongsTo(Users::class, 'user_id');

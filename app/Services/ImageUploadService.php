@@ -6,6 +6,8 @@ namespace App\Services;
 use Illuminate\Support\Facades\Storage;
 
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use GuzzleHttp\Psr7\UploadedFile;
+
 class ImageUploadService
 {
     protected $cloudinary;
@@ -20,14 +22,40 @@ class ImageUploadService
     public function uploadImage($file, $type, $customPath = null)
     {
         $folder = $customPath ?? ($type === 'image' ? 'images' : 'documents');
-
-        $uploadedFile = Cloudinary::upload($file->getRealPath(), [
+        $file=Storage::path($file);
+        
+        // dd("sidy",$file,Storage::exists($file));
+        $uploadedFile = Cloudinary::upload($file, [
             'folder' => $folder
         ]);
         // Log::info('Uploading file', ['file' => $uploadedFile]);
         return $uploadedFile->getSecurePath();
     }
-
+    // public function uploadImage($file, $type, $customPath = null)
+    // {
+    //     if (is_string($file) && file_exists($file)) {
+    //         // Gérer le cas où $file est un chemin vers un fichier local
+    //         $folder = $customPath ?? ($type === 'image' ? 'images' : 'documents');
+    
+    //         $uploadedFile = Cloudinary::upload($file, [
+    //             'folder' => $folder
+    //         ]);
+    
+    //         return $uploadedFile->getSecurePath();
+    //     } elseif ($file instanceof UploadedFile) {
+    //         // Si $file est un fichier téléversé
+    //         $folder = $customPath ?? ($type === 'image' ? 'images' : 'documents');
+    
+    //         $uploadedFile = Cloudinary::upload($file->getRealPath(), [
+    //             'folder' => $folder
+    //         ]);
+    
+    //         return $uploadedFile->getSecurePath();
+    //     } else {
+    //         throw new \Exception("Le fichier n'est pas valide ou n'est pas un fichier téléversé.");
+    //     }
+    // }
+    
     /**
      * Encode the photo to Base64 and store locally.
      *

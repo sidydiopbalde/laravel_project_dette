@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\UserCreated;
 use App\Repository\ClientRepository;
 use App\Http\Requests\StoreRequest;
 use App\Facades\ClientRepositoryFacade;
@@ -60,65 +61,47 @@ class ClientServiceImpl implements ClientService
     }
 
     public function createClient(StoreRequest $request)
+
     {
         try {
-            // Début de la transaction
             DB::beginTransaction();
-            
-            // Valider les données de la requête
-            $validatedData = $request->validated();
     
-        
+            $validatedData = $request->validated();
             $user = null;
+            
+            // dd($clientData);
             if ($request->has('user')) {
-              
-                $userData = $validatedData['user'];
+                $userData = collect($validatedData['user'])->except(['photo'])->toArray();
                 $userData['password'] = bcrypt($userData['password']);
-                $userdata=collect($userData)->except(['photo'])->toArray();
-                $user = ClientRepositoryFacade::createUser($userdata);
+                $user = ClientRepositoryFacade::createUser($userData);
             }
+    
             $clientData = $validatedData;
             $clientData['user_id'] = $user ? $user->id : null;
+    
             if ($request->hasFile('user.photo')) {
                 $photo = $request->file('user.photo');
-                $uploadedFileUrl = UploadCloudImageFacade::uploadImage($photo,'image');
-                // dd($uploadedFileUrl);
-                $User = User::find($user->id);
-                $User->photo = $uploadedFileUrl;
-                $User->save();
-            
+                $photoPath = $photo->store('app/public/photos'); 
+                // dd($user);
+                // Déclencher l'événement après avoir créé l'utilisateur
+             event(new UserCreated($user, $photoPath));
             }
+    
             $client = ClientRepositoryFacade::create($clientData);
-          
             if ($user) {
                 $client->user()->associate($user);
             }
             $client->save();
-            $qrCodeData = json_encode([
-                'id' => $client->id,
-                'name' => $client->surnom,
-                'mail' => $client->user->mail,
-                'phone' => $client->user->phone,
-            ]);
-
-            $qrCodeFileName = 'client_' . $client->id . '.png';
-            $qrCodePath = app(QrCodeService::class)->generateQrCode($qrCodeData, $qrCodeFileName);
-
-            $pdfPath = storage_path('public/pdfs/client_' . $client->id . '.pdf');
-            app(PdfService::class)->generatePdf('pdf.client', ['client' => $client, 'qrCodePath' => $qrCodePath], $pdfPath);
     
-            Mail::to($client->user->login)->send(new ClientCreated($client, $pdfPath));
-    
-            // Validation de la transaction
             DB::commit();
     
-            return response()->json(['client' => $client, 'pdf' => $pdfPath]);
+            return response()->json(['client' => $client]);
     
         } catch (\Exception $e) {
-            // En cas d'erreur, annuler la transaction
             DB::rollBack();
-    
             throw new \Exception('Erreur lors de la création du client: ' . $e->getMessage());
         }
-}
+    }
+    
+    
 }

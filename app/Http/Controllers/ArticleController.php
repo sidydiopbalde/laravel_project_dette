@@ -120,12 +120,25 @@ class ArticleController extends Controller
     // }
     
 
-    public function index()
+    // public function index()
+    // {
+    //     $articles = $this->service->all();
+    //     return response()->json($articles);
+    // }
+
+    public function index(Request $request)
     {
-        $articles = $this->service->all();
-        return response()->json($articles);
+       $libelle = $request->input('libelle');
+        // Appliquer le scope local pour filtrer les articles par libelle
+        if ($libelle) {
+            $articles = Article::libelle($libelle)->get();
+        } else {
+          
+            $articles = $this->service->all();
+        }
+
+        return $articles;
     }
-    
         /**
      * @OA\Post(
      *     path="/api/articles",
@@ -155,7 +168,7 @@ class ArticleController extends Controller
          // Utiliser le service pour créer l'article
          $article = $this->service->create($validated);
      
-         return response()->json($article, 201);
+         return $article;
      }
     
     
@@ -171,7 +184,7 @@ class ArticleController extends Controller
             return response()->json(['message' => 'Article not found'], 404);
         }
     
-        return response()->json($article, 200); 
+        return $article; 
     }
     
     
@@ -196,24 +209,18 @@ class ArticleController extends Controller
      * Show the form for editing the specified resource.
      */
    
+     public function update(UpdateArticleRequest $request, $id)
+     {
+         // Utiliser le service pour mettre à jour l'article
+         $article = $this->service->update($id, $request->input('qte'));
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, Article $article)
-    // {
-    //     // Validation des données
-    //     $validated = $request->validate([
-    //         'libelle' => 'required|string|max:255',
-    //         'qte' => 'required|string',
-    //         'prix_unitaire' => 'required|string',
-    //     ]);
-    
-    //     // Mise à jour de l'article
-    //     $article->update($validated);
-    
-    //     return response()->json($article); // Retourne l'article mis à jour en JSON
-    // }
+         if (!$article) {
+             return response()->json(['error' => 'Article non trouvé'], 404);
+         }
+
+         return response()->json(['article' => $article, 'message' => 'Article mis à jour avec succès']);
+     }
+
   /**
      * @OA\Patch(
      *     path="/api/articles/{id}",
@@ -239,19 +246,15 @@ class ArticleController extends Controller
      *     )
      * )
      */
-//update Article by id
-        public function update(UpdateArticleRequest $request, $id)
-        {
-            // Utiliser le service pour mettre à jour l'article
-            $article = $this->service->update($id, $request->input('qte'));
+    public function updateQuantities(UpdateArticlestockRequest $request)
+    {
+        $validated = $request->validated();
 
-            if (!$article) {
-                return response()->json(['error' => 'Article non trouvé'], 404);
-            }
+        // Appeler le service pour mettre à jour les quantités
+        $response = $this->service->updateArticleQuantities($validated['articles']);
 
-            return response()->json(['article' => $article, 'message' => 'Article mis à jour avec succès']);
-        }
-
+        return $response;
+    }
 
     /**
      * @OA\Patch(
@@ -269,60 +272,16 @@ class ArticleController extends Controller
      *     )
      * )
      */
-    //update un ou plusieurs articles
-//     public function updateQuantities(UpdateArticlestockRequest $request)
-// {
-//     $validated = $request->validated();
-//     $failedUpdates = []; // Tableau pour stocker les articles dont la mise à jour a échoué
-//     $successfulUpdates = []; // Tableau pour stocker les articles mis à jour avec succès
 
-//     foreach ($validated['articles'] as $articleData) {
-//         $article = Article::find($articleData['id']);
-//         if ($article) {
-//             // Mise à jour de la quantité de l'article
-//             $article->qte += $articleData['qte'];
-//             $article->save();
 
-//             // Ajouter les informations de l'article mis à jour avec succès
-//             $successfulUpdates[] = [
-//                 'id' => $article->id,
-//                 'qte' => $article->qte
-//             ];
-//         } else {
-//             // Ajouter les informations de l'article qui n'a pas pu être mis à jour
-//             $failedUpdates[] = [
-//                 'id' => $articleData['id'],
-//                 'qte' => $articleData['qte']
-//             ];
-//         }
-//     }
-
-//     // Préparer la réponse
-//     $response = [
-//         'message' => 'Les articles ont été mis à jour avec succès.',
-//         'successful_updates' => $successfulUpdates,
-//         'failed_updates' => $failedUpdates,
-//     ];
-
-//     // Si des mises à jour ont échoué, modifier le message
-//     if (!empty($failedUpdates)) {
-//         $response['message'] = 'Certaines mises à jour ont échoué.';
-//     }
-
-//     return response()->json($response);
-// }
-
-    public function updateQuantities(UpdateArticlestockRequest $request)
-    {
-        $validated = $request->validated();
-
-        // Appeler le service pour mettre à jour les quantités
-        $response = $this->service->updateArticleQuantities($validated['articles']);
-
-        return response()->json($response);
-    }
-    //Get clients with  with account
+ 
     
+    public function destroy(Article $article)
+    {
+        $this->service->delete($article->id);
+    
+        return response()->json(['message' => 'Article supprimé avec succès']);
+    }
 /**
      * @OA\Delete(
      *     path="/api/articles/{id}",
@@ -343,13 +302,7 @@ class ArticleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Article $article)
-    {
-        $this->service->delete($article->id);
-    
-        return response()->json(['message' => 'Article supprimé avec succès']);
-    }
-    
+ 
     
 
     public function filter(Request $request)

@@ -94,6 +94,13 @@ class ClientController extends Controller
  *     security={{"BearerToken": {}}}
  * )
  */
+    public function index(Request $request)
+    {
+        // Récupère les clients filtrés automatiquement via le scope global
+        $clients = Client::all();  // Le scope global sera appliqué ici
+
+        return response()->json($clients);
+    }
         // public function index(Request $request)
         // {
         //     // Récupération des paramètres de requête
@@ -175,6 +182,7 @@ class ClientController extends Controller
         //     return $this->sendResponse(200, $data, 'Liste des clients récupérée avec succès.');
         // }
 
+     
       /**
  * @OA\Post(
  *     path="/api/clients/telephone",
@@ -340,88 +348,6 @@ class ClientController extends Controller
          ], 500);
      }
  }
-     // Crée un nouveau clientpublic function store(StoreRequest $request)
-    //  public function store(StoreRequest $request)
-    //  {
-    //      try {
-    //          // Début de la transaction
-    //          DB::beginTransaction();
-             
-    //          // Création de l'utilisateur, si fourni
-    //          $user = null;
-    //          if ($request->has('user')) {
-    //              $userData = $request->input('user');
-    //              $userData['password'] = bcrypt($userData['password']);
-    //              $user = Users::create($userData);
-    //          }
-             
-    //          // Création du client
-    //          $clientData = $request->validated();
-    //          $clientData['user_id'] = $user ? $user->id : null;
-     
-    //          // Gestion du fichier de la photo
-    //          if ($request->hasFile('photo')) {
-    //              $filePath = $request->file('photo')->store('photos', 'public');
-    //              $userData['photo'] = $filePath;
-    //          }
-     
-    //          $client = Client::create($clientData);
-     
-    //          // Associer le client à l'utilisateur, si existant
-    //          if ($user) {
-    //              $client->user()->associate($user);
-    //          }
-     
-    //          $client->save();
-     
-    //          // Validation de la transaction
-    //          DB::commit();
-     
-    //          return $this->sendResponse(200, new ClientResource($client), 'Client créé avec succès.');
-    //      } catch (\Exception $e) {
-    //          // En cas d'erreur, annuler la transaction
-    //          DB::rollBack();
-     
-    //          return $this->sendResponse(500, null, 'Erreur lors de la création du client: ' . $e->getMessage());
-    //      }
-    //  }
-    //    public function store(StoreRequest $request){
-        
-    //      // Récupération des données du client et du user
-    //      $clientData = request()->validate([
-    //         'surnom' =>'required|string',
-    //          'adresse' =>'required|string',
-    //          'telephone' =>'required|string|max:9',
-    //          'user' => 'array',
-    //          'user.email' =>'required|email',
-    //          'user.password' => 'nullable|string|min:8|confirmed',
-    //          'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-    //      ]);
-      
-    //      $userData = $clientData['user'];
-    //      $userData['password'] =  bcrypt($userData['password']);
-      
-    //      // Création du user
-    //      $user = User::create($userData);
-    //      $user->save();
-    //      // Création du client
-    //      $clientData['user_id'] = $user->id;
-
-    //      // Gestion du fichier de la photo
-    //      if($request->hasFile('photo')){
-    //          $photo = $request->file('photo');
-    //          $photoName = time(). '.'. $photo->getClientOriginalExtension();
-    //          $photo->move(public_path('images'), $photoName);
-    //          $clientData['photo'] = $photoName;
-    //      }
-
-    //      $client = ClientServiceFacade::create($clientData);
-
-    //      return response()->json([
-    //         'status' => 200,
-    //          'data' => $client,
-    //          'message' => 'Client created successfully'
-    //      ], 200);
-    //    }  
+   
 
     }

@@ -40,11 +40,16 @@
             font-size: 28px;
             color: #6c63ff; /* Couleur du titre */
             margin-bottom: 5px;
+            font-weight: bold;
+            line-height: 1.5;
+            color:black;
         }
         .client-info p {
             font-size: 18px;
             color: #ffffff; /* Couleur des informations du client */
             margin-bottom: 10px;
+           
+
         }
         .qr-code {
             text-align: center;
@@ -79,12 +84,12 @@
     <div class="container">
         <div class="decorative-elements"></div> <!-- Eléments décoratifs colorés -->
         <div class="header">
-            <img src="photos/81UJjSUWs39NuCsGNp3Ixv8CMLCSTmzSTvsk3Ckb.png" alt="Photo du client">
+            <img src="{{ $qrCodePath }}">
         </div>
         <div class="client-info">
-            <h1>Nom du client : {{ $client->surnom }}</h1>
-            <p>Email : {{ $client->mail }}</p>
-            <p>Téléphone : {{ $client->telephone }}</p>
+            <h1>Nom du client : {{ $user->nom }}</h1>
+            <p>Email : {{ $user->mail }}</p>
+           
         </div>
         <div class="qr-code">
             <h2>Code QR</h2>
