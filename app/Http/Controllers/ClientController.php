@@ -4,19 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Client;
-use App\Models\Users;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreRequest;
-use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\QueryBuilder;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Resources\ClientResource;
-use App\Http\Resources\UserResource;
 use App\Traits\ApiResponseTrait;
 use App\Facades\ClientServiceFacade;
-use App\Models\User;
-use App\Facades\ImageUploadFacade;
-use GuzzleHttp\Client as GuzzleHttpClient;
 
 /**
  * @OA\Schema(
@@ -36,10 +26,6 @@ use GuzzleHttp\Client as GuzzleHttpClient;
 class ClientController extends Controller
 {
     use ApiResponseTrait;
-
-  
- 
-
         /**
  * @OA\Get(
  *     path="/api/clients",
@@ -98,89 +84,9 @@ class ClientController extends Controller
     {
         // Récupère les clients filtrés automatiquement via le scope global
         $clients = Client::all();  // Le scope global sera appliqué ici
-
-        return response()->json($clients);
+        return $clients;
     }
-        // public function index(Request $request)
-        // {
-        //     // Récupération des paramètres de requête
-        //     $telephones = $request->query('telephone');
-        //     $surnom = $request->query('surnom');
-        //     $includeUser = $request->query('include') === 'user';
-        //     $comptes = $request->query('comptes'); // Récupération du paramètre comptes
-        //     $active = $request->query('active'); // Récupération du paramètre active
-        
-        //     // Construction de la requête
-        //     $query = Client::query();
-        
-        //     // Jointure avec la table 'users' pour accéder à la colonne 'active'
-        //     $query->leftJoin('users', 'clients.user_id', '=', 'users.id');
-        
-        //     // Sélectionner les colonnes nécessaires
-        //     $query->select('clients.*', 'users.active');
-        
-        //     // Application des filtres si des numéros de téléphone ou un surnom sont fournis
-        //     if ($telephones) {
-        //         if (!is_array($telephones)) {
-        //             $telephones = explode(',', $telephones);
-        //         }
-        //         $query->whereIn('clients.telephone', $telephones);
-        //     }
-        
-        //     if ($surnom) {
-        //         $query->where('clients.surnom', 'like', '%' . $surnom . '%');
-        //     }
-        
-        //     // Filtrer les clients ayant des comptes associés selon la valeur du paramètre 'comptes'
-        //     if ($comptes) {
-        //         if ($comptes === 'oui') {
-        //             $query->whereNotNull('clients.user_id');
-        //         } elseif ($comptes === 'non') {
-        //             $query->whereNull('clients.user_id');
-        //         }
-        //     }
-        
-        //     // Filtrer les clients selon le paramètre 'active'
-        //     if ($active) {
-        //         if ($active === 'oui') {
-        //             $query->where('users.active', true);
-        //         } elseif ($active === 'non') {
-        //             $query->where('users.active', false);
-        //         }
-        //     }
-        
-        //     // Inclure les informations de l'utilisateur si le paramètre 'include' est 'user'
-        //     if ($includeUser) {
-        //         $query->addSelect('users.*');
-        //     }
-        
-        //     // Utilisation du Lazy Query Builder
-        //     $clients = $query->cursor(); 
-        
-        //     // Traitement des clients
-        //     $data = [];
-        //     foreach ($clients as $client) {
-        //         $clientData = [
-        //             'id' => $client->id,
-        //             'surnom' => $client->surnom,
-        //             'adresse' => $client->adresse,
-        //             'telephone' => $client->telephone,
-        //         ];
-        
-        //         if ($includeUser && $client->user_id) {
-        //             $clientData['user'] = [
-        //                 'id' => $client->user_id,
-        //                 'active' => $client->active,
-        //                 // Inclure d'autres informations sur l'utilisateur si nécessaire
-        //             ];
-        //         }
-        
-        //         $data[] = $clientData;
-        //     }
-        
-        //     // Retourner une réponse JSON
-        //     return $this->sendResponse(200, $data, 'Liste des clients récupérée avec succès.');
-        // }
+
 
      
       /**
@@ -256,43 +162,17 @@ class ClientController extends Controller
      
     public function show(Request $request, $id)
     {
-        $includeUser = $request->query('include') === 'user';
-
-        try {
+            $includeUser = $request->query('include') === 'user';
             $client = ClientServiceFacade::getClientById($id, $includeUser);
-            return response()->json($client);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 404);
-        }
+            return $client;
+       
     }
 
   
     public function showClientWithUser($id)
     {
-        try {
-            // Récupérer le client avec les informations de l'utilisateur associé
             $client = Client::with('user')->find($id);
-
-            // Vérifier si le client existe
-            if (!$client) {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Client not found'
-                ], 404);
-            }
-
-            // Retourner les données du client avec l'utilisateur associé
-            return response()->json([
-                'status' => 200,
-                'client' => $client
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 500,
-                'message' => 'Erreur lors de la récupération du client: ' . $e->getMessage()
-            ], 500);
-        }
+             return $client;      
     }
 /**
  * @OA\Post(
@@ -329,25 +209,9 @@ class ClientController extends Controller
 
  public function store(StoreRequest $request)
  {
-     try {
-         // Appel du service pour créer un client
          $client =ClientServiceFacade::createClient($request);
-
-         // Retourner une réponse JSON avec les détails du client
-         return response()->json([
-             'success' => true,
-             'message' => 'Client créé avec succès',
-             'client' => $client,
-         ], 201);
-
-     } catch (\Exception $e) {
-         // En cas d'erreur, retourner une réponse JSON avec un message d'erreur
-         return response()->json([
-             'success' => false,
-             'message' => $e->getMessage(),
-         ], 500);
-     }
+         return $client;
  }
    
 
-    }
+ }

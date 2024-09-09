@@ -25,13 +25,32 @@ class Dette extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['client_id', 'montant','montant_due', 'description', 'date'];
+    protected $fillable = ['client_id', 'montant'];
     protected $hidden=['id','created_at','updated_at'];
     public function client()
     {
         return $this->belongsTo(Clients::class);
 
     }
+    // Relation avec Paiements
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class);
+    }
 
-    
+    public function articles()
+    {
+        return $this->belongsToMany(Article::class, 'dette_article')
+                    ->withPivot('qte_vente', 'prix_vente')
+                    ->withTimestamps();
+    }
+      // Scope local pour filtrer les dettes soldées ou non soldées
+      public function scopeStatut($query, $statut)
+      {
+          return $query->where(function ($q) use ($statut) {
+              // Calcul de la somme des paiements pour chaque dette
+              $q->whereRaw('(SELECT SUM(montant) FROM paiements WHERE paiements.dette_id = dettes.id) ' .
+                           ($statut == 'Solde' ? '>=' : '<') . ' dettes.montant');
+          });
+      }
 }

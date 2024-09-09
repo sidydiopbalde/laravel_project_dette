@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -11,10 +10,14 @@ class Handler extends ExceptionHandler
 {
     public function render($request, Throwable $exception): JsonResponse
     {
-        // Exclure les exceptions qui sont des instances de ServiceException ou RepositoryException
-        if ($exception instanceof \App\Exceptions\ServiceException ||
-            $exception instanceof \App\Exceptions\RepositoryException) {
-            return parent::render($request, $exception);
+        
+        // Gérer les exceptions spécifiques ServiceException et RepositoryException
+        if ($exception instanceof \App\Exceptions\ServiceException) {
+            return $this->handleServiceException($exception);
+        }
+
+        if ($exception instanceof \App\Exceptions\RepositoryException) {
+            return $this->handleRepositoryException($exception);
         }
 
         // Gérer les exceptions liées à l'authentification
@@ -42,8 +45,30 @@ class Handler extends ExceptionHandler
     }
 
     /**
-     * Gérer les exceptions d'authentification.
+     * Gérer les exceptions ServiceException.
      */
+    protected function handleServiceException(ServiceException $exception): JsonResponse
+    {
+        return response()->json([
+            'error' => 'Service Error',
+            'message' => $exception->getMessage(),
+            'details' => $exception->getDetails(),
+        ], $exception->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Gérer les exceptions RepositoryException.
+     */
+    protected function handleRepositoryException(RepositoryException $exception): JsonResponse
+    {
+        return response()->json([
+            'error' => 'Repository Error',
+            'message' => $exception->getMessage(),
+            'details' => $exception->getDetails(),
+        ], $exception->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    // Méthodes pour gérer l'authentification, autorisation, validation et modèles non trouvés
     protected function handleAuthenticationException(\Illuminate\Auth\AuthenticationException $exception): JsonResponse
     {
         return response()->json([
@@ -52,9 +77,6 @@ class Handler extends ExceptionHandler
         ], Response::HTTP_UNAUTHORIZED);
     }
 
-    /**
-     * Gérer les exceptions d'autorisation.
-     */
     protected function handleAuthorizationException(\Illuminate\Auth\Access\AuthorizationException $exception): JsonResponse
     {
         return response()->json([
@@ -63,9 +85,6 @@ class Handler extends ExceptionHandler
         ], Response::HTTP_FORBIDDEN);
     }
 
-    /**
-     * Gérer les exceptions de validation.
-     */
     protected function handleValidationException(\Illuminate\Validation\ValidationException $exception): JsonResponse
     {
         return response()->json([
@@ -75,9 +94,6 @@ class Handler extends ExceptionHandler
         ], Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
-    /**
-     * Gérer les exceptions de modèle non trouvé.
-     */
     protected function handleModelNotFoundException(\Illuminate\Database\Eloquent\ModelNotFoundException $exception): JsonResponse
     {
         return response()->json([
@@ -96,7 +112,6 @@ class Handler extends ExceptionHandler
             'message' => 'Une erreur interne du serveur est survenue.',
             'exception' => get_class($exception),
             'details' => $exception->getMessage(),
-            // Vous pouvez également inclure un backtrace ou d'autres informations en mode de développement
         ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }

@@ -16,9 +16,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade'); // Clé étrangère pour lier la dette au client
             $table->decimal('montant', 10, 2); // Montant de la dette
-            $table->decimal('montant_due', 10, 2); // Montant de la dette
-            $table->date('date')->default(DB::raw('CURRENT_DATE')); // Date de la dette par défaut à aujourd'hui
             $table->timestamps(); // Crée les colonnes created_at et updated_at
+        });
+        Schema::table('dettes', function (Blueprint $table) {
+            $table->dropColumn(['date', 'montant_due']);
         });
     }
 

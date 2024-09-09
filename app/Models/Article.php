@@ -19,7 +19,12 @@ class Article extends Model
     protected $hidden = ['id', 'created_at', 'updated_at'];
 
     protected $dates = ['deleted_at'];
-
+    public function dettes()
+    {
+        return $this->belongsToMany(Dette::class, 'dette_article')
+                    ->withPivot('qte_vente', 'prix_vente')
+                    ->withTimestamps();
+    }
     // Exemple de méthode filter
     // public function filter(array $filters)
     // {

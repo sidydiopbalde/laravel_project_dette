@@ -35,7 +35,8 @@ class ClientServiceImpl implements ClientService
         $client = ClientRepositoryFacade::findById($id);
 
         if (!$client) {
-            throw new ServiceException('Client not found');
+            // Lever une ServiceException avec des détails
+            throw new ServiceException('Client not found', 404, null, ['client_id' => $id]);
         }
 
         if ($includeUser && $client->user && $client->user->photo) {
@@ -44,6 +45,7 @@ class ClientServiceImpl implements ClientService
 
         return $client;
     }
+
 
     public function findByTelephone(string $telephone)
     {
@@ -61,47 +63,56 @@ class ClientServiceImpl implements ClientService
     }
 
     public function createClient(StoreRequest $request)
-
     {
         try {
             DB::beginTransaction();
-    
             $validatedData = $request->validated();
             $user = null;
-            
-            // dd($clientData);
+    
             if ($request->has('user')) {
                 $userData = collect($validatedData['user'])->except(['photo'])->toArray();
                 $userData['password'] = bcrypt($userData['password']);
                 $user = ClientRepositoryFacade::createUser($userData);
+    
+                if (!$user) {
+                    throw new ServiceException('Erreur lors de la création de l\'utilisateur.', 500);
+                }
             }
     
             $clientData = $validatedData;
             $clientData['user_id'] = $user ? $user->id : null;
     
             if ($request->hasFile('user.photo')) {
-                $photo = $request->file('user.photo');
-                $photoPath = $photo->store('app/public/photos'); 
-                // dd($user);
-                // Déclencher l'événement après avoir créé l'utilisateur
-             event(new UserCreated($user, $photoPath));
+                try {
+                    $photo = $request->file('user.photo');
+                    $photoPath = $photo->store('app/public/photos'); 
+                    event(new UserCreated($user, $photoPath));
+                } catch (\Exception $e) {
+                    throw new ServiceException('Erreur lors de l\'upload de la photo', 500, $e);
+                }
+            }
+            $client = ClientRepositoryFacade::create($clientData);
+            if (!$client) {
+                throw new ServiceException('Erreur lors de la création du client.', 500);
             }
     
-            $client = ClientRepositoryFacade::create($clientData);
             if ($user) {
                 $client->user()->associate($user);
             }
+    
             $client->save();
     
             DB::commit();
-    
-            return response()->json(['client' => $client]);
-    
+            return response()->json(['client' => $client], 201);
+        } catch (ServiceException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Erreur lors de la création du client: ' . $e->getMessage());
+            throw new ServiceException('Erreur lors de la création du client.', 500, $e);
         }
     }
+    
     
     
 }

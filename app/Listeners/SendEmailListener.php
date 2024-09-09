@@ -28,12 +28,12 @@ class SendEmailListener implements ShouldQueue
             $qrCodePath = app(QrCodeService::class)->generateQrCode($qrCodeData, $qrCodeFileName);
             
             $pdfPath = storage_path('public/pdfs/client_' . $event->user->id . '.pdf');
-            // dd($pdfPath);
+            
             app(PdfService::class)->generatePdf('pdf.client', [
                 'user' => $event->user, 
                 'qrCodePath' => $qrCodePath
             ], $pdfPath);
-
+            
             // Dispatch du job pour envoyer l'e-mail avec le PDF
             SendClientEmailJob::dispatch($event->user, $pdfPath);
 

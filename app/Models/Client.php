@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Scopes\FilterScope;
+ use App\Observers\ClientObserver;
+// #[ObservedBy([ClientObserver::class])]
 class Client extends Model
 {
     use HasFactory;
@@ -27,6 +29,7 @@ class Client extends Model
      {
          // Ajouter le scope global
          static::addGlobalScope(new FilterScope(request()->all()));
+         static::observe(ClientObserver::class);
      }
    // Définir la relation avec le modèle UserProfile
     public function user()

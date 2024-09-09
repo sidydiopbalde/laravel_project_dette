@@ -28,14 +28,7 @@ class SendClientEmailJob implements ShouldQueue
     public function handle()
     {
         try {
-          
-           // Mauvais : vous passez uniquement l'adresse e-mail
-        // Mail::to($this->user->mail)->send(new ClientCreated($this->user->mail, $this->pdfPath));
-
-
         Mail::to($this->user->mail)->send(new ClientCreated($this->user, $this->pdfPath));
-
-
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'envoi de l\'e-mail : ' . $e->getMessage());
         }

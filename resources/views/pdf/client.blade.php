@@ -84,11 +84,11 @@
     <div class="container">
         <div class="decorative-elements"></div> <!-- Eléments décoratifs colorés -->
         <div class="header">
-            <img src="{{ $qrCodePath }}">
+            <img src="{{ $user->photo }}">
         </div>
         <div class="client-info">
-            <h1>Nom du client : {{ $user->nom }}</h1>
-            <p>Email : {{ $user->mail }}</p>
+            <h1 style="color:black">Nom du client : {{ $user->nom }}</h1>
+            <p style="color:black">Email : {{ $user->mail }}</p>
            
         </div>
         <div class="qr-code">

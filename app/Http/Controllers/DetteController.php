@@ -4,10 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Dette;
 use Illuminate\Http\Request;
-
+use App\Services\DetteService;
+use App\Http\Requests\StoreDetteRequest;
+use App\Facades\DetteServiceFacade;
+use Illuminate\Support\Facades\DB;
 class DetteController extends Controller
 {
-   
+    // protected $debtService;
+
+    // public function __construct(DetteService $debtService)
+    // {
+    //     $this->debtService = $debtService;
+    //}
     /**
      * @OA\Schema(
      *     schema="Dette",
@@ -54,15 +62,41 @@ class DetteController extends Controller
     {
         // Récupérer les dettes du client par ID
         $dettes = Dette::where('client_id', $clientId)->get();
-
-        // Vérifier si des dettes existent pour ce client
-        if ($dettes->isEmpty()) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Aucune dette trouvée pour ce client.'
-            ], 404);
-        }
-
-        return response()->json($dettes, 200);
+        return $dettes;
     }
+
+ /**
+     * @OA\Post(
+     *     path="/api/articles/clients/{clientId}/dettes",
+     *     summary="Créer une nouvelle demande de crédit",
+     *     tags={"Dettes"},
+     * description
+     *     @OA\Parameter(
+     *         name="clientId",
+     *         in="path",
+     *         required=true,
+     *         description="ID du client pour lequel créer la demande de crédit",
+     * description="
+     * 
+     * 
+     * 
+     * 
+     * **/
+     
+    // Ajouter une nouvelle demande de crédit
+    public function store(StoreDetteRequest $request)
+    {
+        $validated = $request->validated();
+        $debt = DetteServiceFacade::createDette($validated);
+         return $debt;
+    }
+    //recupere les dettes non soldé ou soldé
+    public function scope_Dette_by_statut(Request $request)
+    {
+        $statut = $request->query('statut', 'Solde'); // Par défaut 'Solde'
+        // Utiliser le scope pour filtrer les dettes selon leur statut calculé et charger les relations
+        $dettes = Dette::with(['client', 'paiements', 'articles'])->statut($statut)->get();
+        return  $dettes;
+    }
+
 }
