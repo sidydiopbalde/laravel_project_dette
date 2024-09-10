@@ -4,6 +4,7 @@ namespace App\Repository;
 
 interface UserRepository
 {
+    public function create(array $data);
     public function getAllUsers($filters = []);
     
     public function getUserById($id);

@@ -3,7 +3,7 @@ namespace App\Services;
 
 use App\Repository\ArticleRepository;
 use App\Services\ArticleService;
-
+use App\Exceptions\ServiceException;
 class ArticleServiceImpl implements ArticleService
 {
     protected $repository;
@@ -28,7 +28,7 @@ class ArticleServiceImpl implements ArticleService
         return $this->repository->find($id);
     }
 
-    public function update($id, array $data)
+    public function update($id, int $data)
     {
         return $this->repository->update($id, $data);
     }
@@ -61,7 +61,7 @@ class ArticleServiceImpl implements ArticleService
      * @param array $data
      * @return array
      */
-    public function updateArticle(int $id, array $data): array
+    public function updateArticle(int $id, int $data): array
     {
         // Récupérer l'article existant
         $article = $this->repository->find($id);
@@ -81,7 +81,7 @@ class ArticleServiceImpl implements ArticleService
             }
 
             // Mettre à jour l'article via le repository
-            $updatedArticle = $this->repository->update($id, $data);
+            $updatedArticle = $this->repository->update($id, $data['qte']);
 
             return [
                 'success' => true,
@@ -89,7 +89,7 @@ class ArticleServiceImpl implements ArticleService
             ];
         } catch (\Exception $e) {
             // Log l'erreur si nécessaire
-            // \log::error('Erreur lors de la mise à jour de l\'article: ' . $e->getMessage());
+            throw new ServiceException('Erreur lors de la mise à jour de l\'article: ' . $e->getMessage());
 
             return [
                 'success' => false,
@@ -99,49 +99,114 @@ class ArticleServiceImpl implements ArticleService
         }
     }
 
+    // public function updateQuantities(Request $request)
+    // {
+    //     // $this->authorize('create', Article::class); 
+    //     $articles = $request->input('articles', []);
+    //     $articlesWithErrors = [];
+    
+    //     foreach ($articles as $articleData) {
+    //         $articleId = $articleData['articleId'] ?? null;
+    //         $quantity = $articleData['quantity'] ?? null;
+    
+    //         if (is_null($articleId) || is_null($quantity)) {
+    //             $articlesWithErrors[] = [
+    //                 'articleId' => $articleId,
+    //                 'quantity' => $quantity,
+    //                 'error' => 'Données manquantes',
+    //             ];
+    //             continue;
+    //         }
+    
+    //         $article = $this->articleService->find($articleId);
+    
+    //         if ($article) {
+    //             if ($quantity < 0) {
+    //                 $articlesWithErrors[] = [
+    //                     'article' => $article,
+    //                     'quantity' => $quantity,
+    //                     'error' => 'Quantité invalide',
+    //                 ];
+    //             } else {
+    //                 $updatedArticle = $this->articleService->update($articleId, [
+    //                     'qutestock' => $article->qutestock + $quantity
+    //                 ]);
+    //             }
+    //         } else {
+    //             $articlesWithErrors[] = [
+    //                 'articleId' => $articleId,
+    //                 'quantity' => $quantity,
+    //                 'error' => 'Article non trouvé',
+    //             ];
+    //         }
+    //     }
+    
+    //     if (count($articlesWithErrors) > 0) {
+    //         return [
+    //             'message' => 'Certaines mises à jour ont échoué.',
+    //             'errors' => $articlesWithErrors,
+    //         ];
+    //     }
+    
+    //     return response()->json([
+    //         'message' => 'Tous les articles ont été mis à jour avec succès.',
+    //     ], 200);
+    // }
+    
     public function updateArticleQuantities(array $articlesData): array
     {
         $failedUpdates = [];
         $successfulUpdates = [];
-
+        
         foreach ($articlesData as $articleData) {
-            $article = $this->repository->find($articleData['id']);
+            $articleId = $articleData['id'] ?? null;
+            $quantity = $articleData['qte'] ?? null;
+            
+            // Vérifier si l'ID ou la quantité sont manquants
+            if (is_null($articleId) || is_null($quantity)) {
+                $failedUpdates[] = [
+                    'article' => $articleData,  // Inclure l'objet complet si les données sont manquantes
+                    'error' => 'Données manquantes'
+                ];
+                continue;
+            }
+            
+            $article = $this->repository->find($articleId);
+            
             if ($article) {
-                try {
-                    // Augmenter la quantité
-                    $newQte = $article->qte + $articleData['qte'];
-                    $updatedArticle = $this->repository->update($article->id, ['qte' => $newQte]);
-
-                    $successfulUpdates[] = [
-                        'id' => $updatedArticle->id,
-                        'qte' => $updatedArticle->qte
-                    ];
-                } catch (\Exception $e) {
-                    // \Log::error('Erreur lors de la mise à jour de l\'article ID ' . $article->id . ': ' . $e->getMessage());
+                if ($quantity < 0) {
+                    // Si la quantité est invalide, inclure l'objet article et l'erreur
                     $failedUpdates[] = [
-                        'id' => $articleData['id'],
-                        'qte' => $articleData['qte']
+                        'article' => $article,
+                        'quantity' => $quantity,
+                        'error' => 'Quantité invalide'
+                    ];
+                } else {
+                    // Mettre à jour la quantité
+                    $newQte = $article->qte + $quantity;
+                    // dd($newQte);
+                    $updatedArticle = $this->repository->update($article->id, $newQte);
+    
+                    $successfulUpdates[] = [
+                        'article' => $updatedArticle,  // Inclure l'objet mis à jour
+                        'qte' => $updatedArticle->qte
                     ];
                 }
             } else {
+                // Si l'article n'est pas trouvé, inclure l'ID dans l'erreur
                 $failedUpdates[] = [
-                    'id' => $articleData['id'],
-                    'qte' => $articleData['qte']
+                    'article' => $articleData,  // Inclure les données d'origine même si l'article est non trouvé
+                    'error' => 'Article non trouvé'
                 ];
             }
         }
-
-        // Préparer la réponse
-        $response = [
-            'message' => 'Les articles ont été mis à jour avec succès.',
-            'successful_updates' => $successfulUpdates,
-            'failed_updates' => $failedUpdates,
+    
+        // Retourner les résultats
+        return [
+            'message' => count($failedUpdates) > 0 ? 'Certaines mises à jour ont échoué.' : 'Tous les articles ont été mis à jour avec succès.',
+            'errors' => $failedUpdates,
+            'success' => $successfulUpdates
         ];
-
-        if (!empty($failedUpdates)) {
-            $response['message'] = 'Certaines mises à jour ont échoué.';
-        }
-
-        return $response;
     }
-}
+    
+}    

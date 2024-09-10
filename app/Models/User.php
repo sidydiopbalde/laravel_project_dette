@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Observers\UserObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
  use Laravel\Passport\HasApiTokens;
 // use Laravel\Sanctum\HasApiTokens;
-
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+#[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
     use HasFactory , HasApiTokens;

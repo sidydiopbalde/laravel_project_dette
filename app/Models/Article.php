@@ -25,31 +25,22 @@ class Article extends Model
                     ->withPivot('qte_vente', 'prix_vente')
                     ->withTimestamps();
     }
-    // Exemple de méthode filter
-    // public function filter(array $filters)
-    // {
-    //     $query = $this->newQuery();
-
-    //     if (isset($filters['libelle'])) {
-    //         $query->where('libelle', 'LIKE', '%' . $filters['libelle'] . '%');
-    //     }
-
-    //     if (isset($filters['qte'])) {
-    //         $query->where('qte', $filters['qte']);
-    //     }
-
-    //     if (isset($filters['prix_unitaire'])) {
-    //         $query->where('prix_unitaire', $filters['prix_unitaire']);
-    //     }
-
-    //     // Ajoutez d'autres filtres selon les besoins
-
-    //     return $query->get();
-    // }
+    public function scopeDisponible($query, $isAvailable = true)
+    {
+        if ($isAvailable) {
+            return $query->where('qte', '>', 0); // Articles disponibles
+        } else {
+            return $query->where('qte', '=', 0); // Articles non disponibles
+        }
+    }
 
     public function scopeLibelle($query, $libelle)
     {
-        return $query->where('libelle', $libelle);
+        return $query->where('libelle', 'like', '%' . $libelle . '%');
     }
+    // public function scopeLibelle($query, $libelle)
+    // {
+    //     return $query->where('libelle', $libelle);
+    // }
 }
 

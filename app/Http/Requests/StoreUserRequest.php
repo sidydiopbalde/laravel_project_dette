@@ -32,7 +32,8 @@ class StoreUserRequest extends FormRequest
             'login' => 'required|string|max:255|unique:users,login',
             'mail' => 'required|string|email|max:255|unique:users,mail',
             'password' => ['required', 'string', new CustumPassword],
-            'role_id' => 'required|exists:roles,id',
+            // 'role_id' => 'required|exists:roles,id',
+            'role_id' => 'required|integer|in:1,2',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation de la photo
         ];
     }
@@ -68,6 +69,7 @@ class StoreUserRequest extends FormRequest
 
             'role_id.required' => 'Le rôle de l\'utilisateur est obligatoire.',
             'role_id.exists' => 'Le rôle sélectionné n\'existe pas.',
+            'role_id.in' => 'Le rôle doit être soit 1 (Client) soit 2 (Boutiquier).',
 
             'photo.image' => 'Le fichier téléchargé doit être une image.',
             'photo.mimes' => 'La photo doit être un fichier de type : jpg, jpeg, png.',

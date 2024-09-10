@@ -9,13 +9,13 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/api/articles": {
+        "/api/v1/articles": {
             "get": {
                 "tags": [
                     "Articles"
                 ],
                 "summary": "List all articles",
-                "operationId": "11aa4cc6561a7b94c56d1201d62513ee",
+                "operationId": "2bb6d18420d6929d1d4175ace6521d21",
                 "parameters": [
                     {
                         "name": "libelle",
@@ -93,7 +93,7 @@
                     "Articles"
                 ],
                 "summary": "Create a new article",
-                "operationId": "e328bed23caf889ad982ad3f1180bccb",
+                "operationId": "0ea2309d3197efec2dbee20f8ba49ddc",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -121,13 +121,13 @@
                 }
             }
         },
-        "/api/articles/{id}": {
+        "/api/v1/articles/{id}": {
             "patch": {
                 "tags": [
                     "Articles"
                 ],
                 "summary": "Update an article",
-                "operationId": "c828f8211617b7a6c23122954d88628e",
+                "operationId": "f4b68253c642acef87a5155fbe1377db",
                 "parameters": [
                     {
                         "name": "id",
@@ -169,13 +169,13 @@
                 }
             }
         },
-        "/api/articles/stock": {
+        "/api/v1/articles/stock": {
             "patch": {
                 "tags": [
                     "Articles"
                 ],
                 "summary": "Update quantities of multiple articles",
-                "operationId": "ca20dc28f43accf78cac0844b922cf17",
+                "operationId": "de52bc60804000e823e29d444d468baa",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -312,13 +312,13 @@
                 ]
             }
         },
-        "/api/clients": {
+        "/api/v1/clients": {
             "get": {
                 "tags": [
                     "Clients"
                 ],
                 "summary": "Récupérer tous les clients",
-                "operationId": "d00d20521584ab5da83e088abb7aded2",
+                "operationId": "b302d909c0e1166a2c033bfd17ed030f",
                 "parameters": [
                     {
                         "name": "telephone",
@@ -401,15 +401,96 @@
                         "BearerToken": []
                     }
                 ]
+            },
+            "post": {
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Créer un client",
+                "operationId": "72a51329a9c85d73e15e640b5b53e470",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "surnom",
+                                    "adresse",
+                                    "telephone"
+                                ],
+                                "properties": {
+                                    "surnom": {
+                                        "type": "string",
+                                        "example": "ClientSurnom"
+                                    },
+                                    "adresse": {
+                                        "type": "string",
+                                        "example": "ClientAdresse"
+                                    },
+                                    "telephone": {
+                                        "type": "string",
+                                        "example": "784316538"
+                                    },
+                                    "user": {
+                                        "description": "Détails de l'utilisateur associé",
+                                        "type": "object"
+                                    },
+                                    "photo": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Client créé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Client"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur lors de la création du client",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erreur lors de la création du client"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ]
             }
         },
-        "/api/clients/telephone": {
+        "/api/v1/clients/telephone": {
             "post": {
                 "tags": [
                     "Clients"
                 ],
                 "summary": "Rechercher un client par numéro de téléphone",
-                "operationId": "dc6aa340acd5f3ff2e677e9d3094c197",
+                "operationId": "4f6923cf76018144cc51a3073e412502",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -468,13 +549,13 @@
                 ]
             }
         },
-        "/api/clients/{id}": {
+        "/api/v1/clients/{id}": {
             "get": {
                 "tags": [
                     "Clients"
                 ],
                 "summary": "Récupérer un client spécifique",
-                "operationId": "4c3c7071ea1133f04bacdbc70f8aa230",
+                "operationId": "0a628c8462ccec3d2798255b1015c22c",
                 "parameters": [
                     {
                         "name": "id",
@@ -528,43 +609,70 @@
                 ]
             }
         },
-        "/clients": {
+        "/api/v1/dettes": {
             "post": {
                 "tags": [
-                    "Clients"
+                    "Dettes"
                 ],
-                "summary": "Créer un client",
-                "operationId": "15981a5da120d8b4ea1b91b05a35622b",
+                "summary": "Créer une nouvelle demande de crédit",
+                "description": "Créer une nouvelle demande de crédit pour un client spécifique",
+                "operationId": "71546e785ef594cbc1f1ff17c88e601a",
+                "parameters": [
+                    {
+                        "name": "clientId",
+                        "in": "path",
+                        "description": "ID du client pour lequel créer la demande de crédit",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "surnom",
-                                    "adresse",
-                                    "telephone"
+                                    "montant",
+                                    "articles"
                                 ],
                                 "properties": {
-                                    "surnom": {
-                                        "type": "string",
-                                        "example": "ClientSurnom"
+                                    "montant": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
                                     },
-                                    "adresse": {
-                                        "type": "string",
-                                        "example": "ClientAdresse"
+                                    "articles": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "articleId": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "qteVente": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "prixVente": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 100
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
                                     },
-                                    "telephone": {
-                                        "type": "string",
-                                        "example": "123456789"
-                                    },
-                                    "user": {
-                                        "description": "Détails de l'utilisateur associé",
+                                    "paiement": {
+                                        "properties": {
+                                            "montant": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 500
+                                            }
+                                        },
                                         "type": "object"
-                                    },
-                                    "photo": {
-                                        "type": "string",
-                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -573,301 +681,106 @@
                     }
                 },
                 "responses": {
-                    "200": {
-                        "description": "Client créé avec succès",
+                    "201": {
+                        "description": "Dette créée avec succès",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Client"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Erreur lors de la création du client",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "integer",
-                                            "example": 500
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Erreur lors de la création du client"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ]
-            }
-        },
-        "/api/articles/clients/{clientId}/dettes": {
-            "get": {
-                "tags": [
-                    "Dettes"
-                ],
-                "summary": "Récupérer les dettes d'un client spécifique",
-                "operationId": "82bc084b10132cb24cc5e5104aa6aedf",
-                "parameters": [
-                    {
-                        "name": "clientId",
-                        "in": "path",
-                        "description": "ID du client pour lequel récupérer les dettes",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Liste des dettes du client",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Dette"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Aucune dette trouvée pour ce client."
-                    }
-                }
-            }
-        },
-        "/api/v1/users": {
-            "get": {
-                "tags": [
-                    "Users"
-                ],
-                "summary": "List all users",
-                "operationId": "3ab81e3f9b24b4f36ab08d72349ac632",
-                "parameters": [
-                    {
-                        "name": "role",
-                        "in": "query",
-                        "description": "Filter users by role",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "active",
-                        "in": "query",
-                        "description": "Filter users by active status",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "oui",
-                                "non"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of users",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/User"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "No users found"
-                    }
-                }
-            }
-        },
-        "/api/v1/users/{id}": {
-            "get": {
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get a user by ID",
-                "operationId": "daaf7a6169ee9348c3fddb07778598ff",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID of the user",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User details",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "User not found"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update an existing user",
-                "operationId": "59e98fba99e974815e27979dd58e2175",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID of the user to update",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/User"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "User updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "User not found"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Delete a user",
-                "operationId": "c30c64b8b7730b65c7714c9af4a6f5fa",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID of the user to delete",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User deleted successfully"
-                    },
-                    "404": {
-                        "description": "User not found"
-                    }
-                }
-            }
-        },
-        "/api/registerUser": {
-            "post": {
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Create a new user",
-                "operationId": "3828ee2afb4be9e0b6b45db1673c88d2",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/User"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "User created successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
+                                    "$ref": "#/components/schemas/Dette"
                                 }
                             }
                         }
                     },
                     "400": {
-                        "description": "Invalid input"
+                        "description": "Requête invalide"
                     }
                 }
             }
         },
-        "/api/v1/users/register": {
+        "/api/articles/clients/{clientId}/dettes": {
             "post": {
                 "tags": [
-                    "Users"
+                    "Dettes"
                 ],
-                "summary": "Create a new user and associate with a client",
-                "operationId": "82a1ca4ac5b9b6bfeca9a0ae9f48adb6",
+                "summary": "Créer une nouvelle demande de crédit",
+                "description": "Créer une nouvelle demande de crédit pour un client spécifique",
+                "operationId": "781184dffab31f52ec83df447820a7de",
+                "parameters": [
+                    {
+                        "name": "clientId",
+                        "in": "path",
+                        "description": "ID du client pour lequel créer la demande de crédit",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UserWithClient"
+                                "required": [
+                                    "montant",
+                                    "articles"
+                                ],
+                                "properties": {
+                                    "montant": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "articles": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "articleId": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "qteVente": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "prixVente": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 100
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "paiement": {
+                                        "properties": {
+                                            "montant": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 500
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
                     }
                 },
                 "responses": {
-                    "200": {
-                        "description": "User created and associated with client",
+                    "201": {
+                        "description": "Dette créée avec succès",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User"
+                                    "$ref": "#/components/schemas/Dette"
                                 }
                             }
                         }
                     },
-                    "500": {
-                        "description": "Error during creation"
+                    "400": {
+                        "description": "Requête invalide"
                     }
                 }
             }
@@ -968,48 +881,6 @@
                 },
                 "type": "object"
             },
-            "UserWithClient": {
-                "required": [
-                    "prenom",
-                    "nom",
-                    "mail",
-                    "login",
-                    "password",
-                    "client_id"
-                ],
-                "properties": {
-                    "prenom": {
-                        "type": "string",
-                        "example": "John"
-                    },
-                    "nom": {
-                        "type": "string",
-                        "example": "Doe"
-                    },
-                    "mail": {
-                        "type": "string",
-                        "example": "john.doe@example.com"
-                    },
-                    "login": {
-                        "type": "string",
-                        "example": "johndoe"
-                    },
-                    "password": {
-                        "type": "string",
-                        "example": "password123"
-                    },
-                    "client_id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "example": 1
-                    },
-                    "photo": {
-                        "type": "string",
-                        "example": "path/to/photo.jpg"
-                    }
-                },
-                "type": "object"
-            },
             "Dette": {
                 "title": "Dette",
                 "required": [
@@ -1081,10 +952,6 @@
         {
             "name": "Dettes",
             "description": "Dettes"
-        },
-        {
-            "name": "Users",
-            "description": "Users"
         }
     ],
     "security": [

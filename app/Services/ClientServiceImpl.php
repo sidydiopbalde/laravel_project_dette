@@ -54,9 +54,8 @@ class ClientServiceImpl implements ClientService
         if (!$client) {
             throw new ServiceException('Client not found');
         }
-
         if ($client->user && $client->user->photo) {
-            $client->user->photo = (new UploadServiceImpl())->getBase64($client->user->photo);
+            $client->user->photo = (new UploadServiceImpl())->encodePhotoToBase64($client->user->photo);
         }
     
         return $client;
@@ -69,28 +68,29 @@ class ClientServiceImpl implements ClientService
             $validatedData = $request->validated();
             $user = null;
     
+            if ($request->hasFile('user.photo')) {
+                try {
+                    $photo = $request->file('user.photo');
+                    $photoPath = $photo->store('app/public/photos'); 
+                   // event(new UserCreated($user, $photoPath));
+                    //  $user->save();
+                } catch (\App\Exceptions\ServiceException $e) {
+                    throw new ServiceException('Erreur lors de l\'upload de la photo', 500, $e);
+                }
+            }
             if ($request->has('user')) {
-                $userData = collect($validatedData['user'])->except(['photo'])->toArray();
+                $userData = collect($validatedData['user'])->toArray();
                 $userData['password'] = bcrypt($userData['password']);
+                $userData['photo']=  $photoPath ;
+                //  dd($userData);
                 $user = ClientRepositoryFacade::createUser($userData);
     
                 if (!$user) {
                     throw new ServiceException('Erreur lors de la création de l\'utilisateur.', 500);
                 }
             }
-    
             $clientData = $validatedData;
             $clientData['user_id'] = $user ? $user->id : null;
-    
-            if ($request->hasFile('user.photo')) {
-                try {
-                    $photo = $request->file('user.photo');
-                    $photoPath = $photo->store('app/public/photos'); 
-                    event(new UserCreated($user, $photoPath));
-                } catch (\Exception $e) {
-                    throw new ServiceException('Erreur lors de l\'upload de la photo', 500, $e);
-                }
-            }
             $client = ClientRepositoryFacade::create($clientData);
             if (!$client) {
                 throw new ServiceException('Erreur lors de la création du client.', 500);
@@ -105,9 +105,7 @@ class ClientServiceImpl implements ClientService
             DB::commit();
             return response()->json(['client' => $client], 201);
         } catch (ServiceException $e) {
-            DB::rollBack();
-            throw $e;
-        } catch (\Exception $e) {
+        
             DB::rollBack();
             throw new ServiceException('Erreur lors de la création du client.', 500, $e);
         }

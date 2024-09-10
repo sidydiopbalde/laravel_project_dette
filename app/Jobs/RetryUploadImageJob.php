@@ -26,7 +26,7 @@ class RetryUploadImageJob implements ShouldQueue
     {
         // Vérifier si le chemin local de la photo existe
         $uploadedFileUrl = UploadCloudImageFacade::uploadImage($this->user->photo, 'image');
-        dd($uploadedFileUrl);
+        // dd($uploadedFileUrl);
         $this->user->update(['photo' => $uploadedFileUrl]);
         $this->user->save();
         // if (Storage::exists($this->user->photo)) {

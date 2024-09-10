@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Http\Requests\StoreRequest;
 use App\Traits\ApiResponseTrait;
 use App\Facades\ClientServiceFacade;
+use App\Models\Scopes\FilterScope;
 
 /**
  * @OA\Schema(
@@ -28,7 +29,7 @@ class ClientController extends Controller
     use ApiResponseTrait;
         /**
  * @OA\Get(
- *     path="/api/clients",
+ *     path="/api/v1/clients",
  *     summary="Récupérer tous les clients",
  *     tags={"Clients"},
  *     @OA\Parameter(
@@ -80,18 +81,25 @@ class ClientController extends Controller
  *     security={{"BearerToken": {}}}
  * )
  */
+  
+  
     public function index(Request $request)
     {
-        // Récupère les clients filtrés automatiquement via le scope global
-        $clients = Client::all();  // Le scope global sera appliqué ici
-        return $clients;
+        $filters = $request->only(['telephone', 'surnom', 'active', 'comptes']);
+        
+        // Appliquer manuellement le scope
+        $clients = Client::with('user')
+                        ->where(function ($query) use ($filters) {
+                            (new FilterScope($filters))->apply($query, new Client);
+                        })
+                        ->get();
+        
+        return response()->json($clients);
     }
-
-
      
       /**
  * @OA\Post(
- *     path="/api/clients/telephone",
+ *     path="/api/v1/clients/telephone",
  *     summary="Rechercher un client par numéro de téléphone",
  *     tags={"Clients"},
  *     @OA\RequestBody(
@@ -128,7 +136,7 @@ class ClientController extends Controller
         
 /**
  * @OA\Get(
- *     path="/api/clients/{id}",
+ *     path="/api/v1/clients/{id}",
  *     summary="Récupérer un client spécifique",
  *     tags={"Clients"},
  *     @OA\Parameter(
@@ -176,7 +184,7 @@ class ClientController extends Controller
     }
 /**
  * @OA\Post(
- *     path="/api/clients",
+ *     path="/api/v1/clients",
  *     summary="Créer un client",
  *     tags={"Clients"},
  *     @OA\RequestBody(
@@ -212,6 +220,6 @@ class ClientController extends Controller
          $client =ClientServiceFacade::createClient($request);
          return $client;
  }
-   
+
 
  }

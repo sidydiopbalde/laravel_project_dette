@@ -3,38 +3,25 @@
 namespace App\Console;
 
 use App\Console\Commands\RelancerUploadImages;
+use App\Jobs\ArchiveSoldesDettesJob;
+use App\Jobs\SendDettesSmsJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    // protected $commands = [
-    //     RelancerUploadImages::class,  // Enregistrer la commande ici
-    // ];
-    /**
-     * Define the application's command schedule.
-     */
+   
     protected function schedule(Schedule $schedule)
     {
-        // Relancer les uploads d'images toutes les heures
-        $schedule->command('images:retry-upload')->everyTwoMinutes();
-    }
+        // $schedule->job(new SendDettesSmsJob)->weeklyOn(5, '14:00'); 
     
-//     protected function schedule(Schedule $schedule)
-//     {
-//         // Relancer les uploads d'images toutes les minutes
-//         $schedule->command('images:relancer')->everyMinute();
-//     }
+         $schedule->job(new ArchiveSoldesDettesJob)->everyMinute();
 
-//     protected function schedule(Schedule $schedule)
-// {
-//     // Relancer les uploads d'images toutes les 5 minutes
-//     $schedule->command('images:relancer')->everyFiveMinutes();
-// }
-
-
-// Cela exécutera les tâches planifiées dans Laravel toutes les minutes, et Laravel vérifiera quelles tâches doivent être exécutées à ce moment-là.
-// * * * * * php /path/to/your/project/artisan schedule:run >> /dev/null 2>&1
+        // $schedule->command('images:retry-upload')->everyTwoMinutes();
+       // $schedule->job(new SendDettesSmsJob(app()->make('App\Services\SmsService')))->everyMinute();
+    }
+   
+    
 
     /**
      * Register the commands for the application.

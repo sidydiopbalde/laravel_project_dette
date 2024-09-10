@@ -57,16 +57,15 @@ class ArticleRepositoryImpl implements ArticleRepository
         return $this->model->filter($filters);
     }
 
-    public function update(int $id, array $data)
+    public function update(int $id, int $qte)
     {
         $article = $this->model->find($id);
-
         if (!$article) {
             return null;
         }
-
-        $article->update($data);
-
+        $article->update(['qte' => $qte]);
+        // dd($article);
+        
         return $article;
     }
 }

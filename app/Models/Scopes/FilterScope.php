@@ -25,7 +25,26 @@ class FilterScope implements Scope
         }
 
         if (!empty($this->filters['active'])) {
-            $builder->where('active', $this->filters['active']);
+            $builder->whereHas('user', function ($query) {
+                $query->where('active', $this->filters['active']);
+            });
+        }
+        // if (!empty($this->filters['comptes'])) {
+        //     $hasUser = $this->filters['comptes'] === 'oui';
+        //     $builder->whereHas('user', function ($query) use ($hasUser) {
+        //         if (!$hasUser) {
+        //             $query->doesntExist();
+        //         }
+        //     }, $hasUser ? '>' : '=', 0);
+        // }
+        if (isset($this->filters['comptes'])) {
+            if ($this->filters['comptes'] === 'oui') {
+                // Clients associés à un utilisateur
+                $builder->whereHas('user');
+            } elseif ($this->filters['comptes'] === 'non') {
+                // Clients non associés à un utilisateur
+                $builder->doesntHave('user');
+            }
         }
     }
 }

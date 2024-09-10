@@ -9,13 +9,12 @@ use Illuminate\Support\Facades\Log;
 
 class ClientRepositoryImpl implements ClientRepository
 {
-    /**
-     * Find a client by their telephone number.
-     *
-     * @param string $telephone
-     * @return \App\Models\Client|null
-     * @throws \App\Exceptions\Repositories\RepositoryException
-     */
+
+    public function associateUser(Client $client, $user)
+    {
+        $client->user()->associate($user);
+        $client->save();
+    }
     public function findByTelephone(string $telephone)
     {
         try {

@@ -102,20 +102,27 @@ class UploadImageJob implements ShouldQueue
                 $this->user->update(['photo' => $uploadedFileUrl]);
               
             } catch (\Exception $e) {
-                $localPath = 'public/temp/' . $this->user->id . '_photo.jpg';
-                $this->user->update(['photo' => $localPath]);
-                $this->user->save();
-                if (!Storage::disk('public')->exists('temp')) {
-                    Storage::disk('public')->makeDirectory('temp');
-                }
+                Log::info($this->photo);
+                $fileName=time().'.'.$this->photo->extension();
+                $file=$this->photo->storeAs('image',   $fileName,
+                [
+                    'disk' => 'public'
+                ]);
+                // $localPath = 'public/temp/' . $this->user->id . '_photo.jpg';
+
+                // $this->user->update(['photo' => $this->photo]);
+                // $this->user->save();
+                // if (!Storage::disk('public')->exists('temp')) {
+                //     Storage::disk('public')->makeDirectory('temp');
+                // }
                 
-                // Storage::disk('public')->put($localPath, file_get_contents($this->photo));
-                if (Storage::exists($this->photo)) {
-                    // dd(Storage::exists($this->photo));
-                    Storage::disk('public')->put($localPath, file_get_contents(storage_path('app/public/' . $this->photo)));
-                } else {
-                    Log::error("Le fichier photo n'existe pas : {$this->photo}");
-                }             
+                // // Storage::disk('public')->put($localPath, file_get_contents($this->photo));
+                // if (Storage::exists($this->photo)) {
+                //     // dd(Storage::exists($this->photo));
+                //     Storage::disk('public')->put($localPath, file_get_contents(storage_path('app/public/' . $this->photo)));
+                // } else {
+                //     Log::error("Le fichier photo n'existe pas : {$this->photo}");
+                // }             
             }
         }
     }

@@ -10,54 +10,52 @@ use App\Facades\DetteServiceFacade;
 use Illuminate\Support\Facades\DB;
 class DetteController extends Controller
 {
-    // protected $debtService;
-
-    // public function __construct(DetteService $debtService)
-    // {
-    //     $this->debtService = $debtService;
-    //}
-    /**
-     * @OA\Schema(
-     *     schema="Dette",
-     *     type="object",
-     *     title="Dette",
-     *     required={"client_id", "montant","montant_due", "date"},
-     *     @OA\Property(property="id", type="integer", example=1),
-     *     @OA\Property(property="client_id", type="integer", example=1),
-     *     @OA\Property(property="montant", type="number", format="float", example=150.75),
-     *     @OA\Property(property="montant_due", type="number", format="float", example=150.75),
-     *     @OA\Property(property="date", type="string", format="date", example="2023-09-01"),
-     *     @OA\Property(property="created_at", type="string", format="date-time", example="2023-09-01T00:00:00Z"),
-     *     @OA\Property(property="updated_at", type="string", format="date-time", example="2023-09-01T00:00:00Z")
-     * )
-     */
-
-    /**
-     * @OA\Get(
-     *     path="/api/articles/clients/{clientId}/dettes",
-     *     summary="Récupérer les dettes d'un client spécifique",
-     *     tags={"Dettes"},
-     *     @OA\Parameter(
-     *         name="clientId",
-     *         in="path",
-     *         required=true,
-     *         description="ID du client pour lequel récupérer les dettes",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Liste des dettes du client",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Dette")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Aucune dette trouvée pour ce client."
-     *     )
-     * )
-     */
+   
+   /**
+ * @OA\Post(
+ *     path="/api/v1/dettes",
+ *     summary="Créer une nouvelle demande de crédit",
+ *     tags={"Dettes"},
+ *     description="Créer une nouvelle demande de crédit pour un client spécifique",
+ *     @OA\Parameter(
+ *         name="clientId",
+ *         in="path",
+ *         required=true,
+ *         description="ID du client pour lequel créer la demande de crédit",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             type="object",
+ *             required={"montant", "articles"},
+ *             @OA\Property(property="montant", type="number", format="float", example=1000),
+ *             @OA\Property(
+ *                 property="articles",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="articleId", type="integer", example=1),
+ *                     @OA\Property(property="qteVente", type="integer", example=5),
+ *                     @OA\Property(property="prixVente", type="number", format="float", example=100)
+ *                 )
+ *             ),
+ *             @OA\Property(property="paiement", type="object", 
+ *                 @OA\Property(property="montant", type="number", format="float", example=500)
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Dette créée avec succès",
+ *         @OA\JsonContent(ref="#/components/schemas/Dette")
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Requête invalide"
+ *     )
+ * )
+ */
     public function index($clientId)
     {
         // Récupérer les dettes du client par ID
@@ -65,25 +63,70 @@ class DetteController extends Controller
         return $dettes;
     }
 
- /**
-     * @OA\Post(
-     *     path="/api/articles/clients/{clientId}/dettes",
-     *     summary="Créer une nouvelle demande de crédit",
-     *     tags={"Dettes"},
-     * description
-     *     @OA\Parameter(
-     *         name="clientId",
-     *         in="path",
-     *         required=true,
-     *         description="ID du client pour lequel créer la demande de crédit",
-     * description="
-     * 
-     * 
-     * 
-     * 
-     * **/
-     
-    // Ajouter une nouvelle demande de crédit
+/**
+ * @OA\Post(
+ *     path="/api/articles/clients/{clientId}/dettes",
+ *     summary="Créer une nouvelle demande de crédit",
+ *     tags={"Dettes"},
+ *     description="Créer une nouvelle demande de crédit pour un client spécifique",
+ *     @OA\Parameter(
+ *         name="clientId",
+ *         in="path",
+ *         required=true,
+ *         description="ID du client pour lequel créer la demande de crédit",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             type="object",
+ *             required={"montant", "articles"},
+ *             @OA\Property(property="montant", type="number", format="float", example=1000),
+ *             @OA\Property(
+ *                 property="articles",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="articleId", type="integer", example=1),
+ *                     @OA\Property(property="qteVente", type="integer", example=5),
+ *                     @OA\Property(property="prixVente", type="number", format="float", example=100)
+ *                 )
+ *             ),
+ *             @OA\Property(property="paiement", type="object", 
+ *                 @OA\Property(property="montant", type="number", format="float", example=500)
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Dette créée avec succès",
+ *         @OA\JsonContent(ref="#/components/schemas/Dette")
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Requête invalide"
+ *     )
+ * )
+ */
+    public function listDettes(Request $request, $id)
+    {
+        try {
+            // Utiliser le service pour récupérer les dettes du client
+            $data = DetteServiceFacade::getClientDettes($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Informations du client et ses dettes',
+                'data' => $data,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 404);
+        }
+    }  
+   
     public function store(StoreDetteRequest $request)
     {
         $validated = $request->validated();
@@ -99,4 +142,88 @@ class DetteController extends Controller
         return  $dettes;
     }
 
+    public function show($id)
+    {
+        try {
+            $dette = DetteServiceFacade::getDetteById($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Dette trouvée',
+                'data' => $dette
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dette non trouvée',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
+    public function listArticles($id)
+    {
+        try {
+            // Appel au service pour récupérer les articles de la dette
+            $articles = DetteServiceFacade::getArticlesByDetteId($id);
+            if($articles){
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Articles récupérés avec succès',
+                    'data' => $articles
+                ], 200);
+            }
+            return response()->json([
+               'success' => false,
+               'message' => 'Aucun article trouvé pour cette dette',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des articles',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
+    public function listPaiements($id)
+    {
+        try {
+            // Appel au service pour récupérer les paiements de la dette
+            $paiements = DetteServiceFacade::getPaiementsByDetteId($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paiements récupérés avec succès',
+                'data' => $paiements
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des paiements',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
+    //ajouter articles dans une dette
+    // public function addArticles(Request $request, $id)
+    // {
+    //     $validatedData = $request->validate([
+    //         'articles.*.articleId' => 'required|exists:articles,id',
+    //         'articles.*.qte' => 'required|integer|min:1',
+    //         'articles.*.prix_unitaire' => 'required|numeric',
+    //     ]);
+
+    //     try {
+    //         $dette = $this->detteService->addArticlesToDette($validatedData['articles'], $id);
+    //         return response()->json([
+    //             'message' => 'Articles ajoutés avec succès',
+    //             'data' => $dette
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur lors de l\'ajout des articles.',
+    //             'error' => $e->getMessage()
+    //         ], 400);
+    //     }
+    // }
 }

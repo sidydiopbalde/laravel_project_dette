@@ -13,6 +13,7 @@ class ClientObserver
      */
     public function created(Client $client)
     {
+        // dd($client);
         // Gérer l'upload de la photo après la création du client, si la photo est présente
         $user = $client->user;
 

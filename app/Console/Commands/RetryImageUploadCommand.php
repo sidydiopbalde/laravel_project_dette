@@ -14,7 +14,8 @@ class RetryImageUploadCommand extends Command
     public function handle()
     {
         // Sélectionner les utilisateurs dont la photo est stockée localement
-        $users = User::where('photo', 'like', 'public/temp/%')->get();
+        $users = User::where('photo', 'like', '%app/public/photos/%')->get();
+        // dd($users);
         // dd($users);
         if ($users->isEmpty()) {
             Log::info('Aucune image à relancer.');

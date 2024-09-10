@@ -22,4 +22,5 @@ interface UploadService
      * @return string
      */
     public function getBase64(string $filePath): string;
+    public function encodePhotoToBase64($photoUrl);
 }

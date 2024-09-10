@@ -20,5 +20,5 @@ interface ArticleRepository
      * @param array $data
      * @return \App\Models\Article|null
      */
-    public function update(int $id, array $data);
+    public function update(int $id, int $data);
 }

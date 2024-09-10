@@ -1,8 +1,11 @@
 <?php
 namespace App\Repository;
 
+use App\Models\Client;
+
 interface ClientRepository
 {
+    public function associateUser(Client $client, $user);
     /**
      * Find a client by their telephone number.
      *

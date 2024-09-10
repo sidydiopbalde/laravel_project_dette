@@ -7,6 +7,8 @@ interface UserService
     public function getAllUsers($filters = []);
 
     public function getUserById($id);
+    
+    public function storeUserClientExist(array $data);
 
     public function createUser(array $data);
 

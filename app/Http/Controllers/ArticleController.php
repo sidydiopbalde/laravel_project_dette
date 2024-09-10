@@ -63,7 +63,7 @@ class ArticleController extends Controller
     }
     /**
      * @OA\Get(
-     *     path="/api/articles",
+     *     path="/api/v1/articles",
      *     summary="List all articles",
      *     tags={"Articles"},
      *     @OA\Parameter(name="libelle", in="query", description="Filter articles by libelle", required=false, @OA\Schema(type="string")),
@@ -126,7 +126,7 @@ class ArticleController extends Controller
     //     return response()->json($articles);
     // }
 
-    public function index(Request $request)
+   /*  public function index(Request $request)
     {
        $libelle = $request->input('libelle');
         // Appliquer le scope local pour filtrer les articles par libelle
@@ -138,10 +138,30 @@ class ArticleController extends Controller
         }
 
         return $articles;
+    } */
+        public function index(Request $request)
+    {
+        $libelle = $request->input('libelle');
+        $disponible = $request->input('disponible', 'oui'); // Valeur par défaut : articles disponibles
+
+        // Vérifier si on doit chercher les articles disponibles ou non disponibles
+        $isAvailable = $disponible === 'oui';
+
+        // Appliquer le scope pour filtrer par libelle et disponibilité
+        $query = Article::disponible($isAvailable);
+
+        if ($libelle) {
+            $query->libelle($libelle);
+        }
+
+        $articles = $query->get();
+
+        return $articles;
     }
+
         /**
      * @OA\Post(
-     *     path="/api/articles",
+     *     path="/api/v1/articles",
      *     summary="Create a new article",
      *     tags={"Articles"},
      *     @OA\RequestBody(
@@ -190,7 +210,7 @@ class ArticleController extends Controller
     
     /**
      * @OA\Get(
-     *     path="/api/articles/{id}",
+     *     path="/api/v1/articles/{id}",
      *     summary="Get an article by ID",
      *     tags={"Articles"},
      *     @OA\Parameter(name="id", in="path", description="ID of the article", required=true, @OA\Schema(type="integer")),
@@ -217,13 +237,12 @@ class ArticleController extends Controller
          if (!$article) {
              return response()->json(['error' => 'Article non trouvé'], 404);
          }
-
          return response()->json(['article' => $article, 'message' => 'Article mis à jour avec succès']);
      }
 
   /**
      * @OA\Patch(
-     *     path="/api/articles/{id}",
+     *     path="/api/v1/articles/{id}",
      *     summary="Update an article",
      *     tags={"Articles"},
      *     @OA\Parameter(name="id", in="path", description="ID of the article to update", required=true, @OA\Schema(type="integer")),
@@ -248,6 +267,7 @@ class ArticleController extends Controller
      */
     public function updateQuantities(UpdateArticlestockRequest $request)
     {
+        // dd($request);
         $validated = $request->validated();
 
         // Appeler le service pour mettre à jour les quantités
@@ -258,7 +278,7 @@ class ArticleController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/api/articles/stock",
+     *     path="/api/v1/articles/stock",
      *     summary="Update quantities of multiple articles",
      *     tags={"Articles"},
      *     @OA\RequestBody(

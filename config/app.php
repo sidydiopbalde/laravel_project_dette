@@ -182,6 +182,7 @@ return [
         App\Providers\AuthCustomServiceProvider::class,
         App\Providers\ImageUploadServiceProvider::class,
         App\Providers\EventServiceProvider::class,
+        App\Providers\MongoDBServiceProvider::class,
 
     ])->toArray(),
 
