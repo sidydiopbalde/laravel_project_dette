@@ -3,5 +3,6 @@ namespace App\Services;
 
 interface SmsServiceInterface
 {
-    public function sendSms($to, $message);
+    public function sendSms(string $to, string $message);
+    public function notifyClientsWithDebts();
 }

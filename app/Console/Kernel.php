@@ -3,8 +3,10 @@
 namespace App\Console;
 
 use App\Console\Commands\RelancerUploadImages;
+use App\Jobs\ArchiveSoldeJob;
 use App\Jobs\ArchiveSoldesDettesJob;
 use App\Jobs\SendDettesSmsJob;
+use App\Jobs\SmsClientsWithDetteJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -18,7 +20,9 @@ class Kernel extends ConsoleKernel
          //$schedule->job(new ArchiveSoldesDettesJob)->everyMinute();
 
         // $schedule->command('images:retry-upload')->everyTwoMinutes();
-        $schedule->job(new SendDettesSmsJob(app()->make('App\Services\SmsService')))->everyMinute();
+        //$schedule->job(new SendDettesSmsJob(app()->make('App\Services\SmsService')))->everyMinute();
+        $schedule->job(new SmsClientsWithDetteJob())->everyMinute();
+        //$schedule->job(new ArchiveSoldeJob)->everyMinute();
     }
    
     

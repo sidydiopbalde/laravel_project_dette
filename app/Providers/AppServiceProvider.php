@@ -19,7 +19,9 @@ use App\Services\FirebaseService;
 use App\Services\FirebaseServiceInterface;
 use App\Services\PaiementService;
 use App\Services\PaiementServiceImpl;
+use App\Services\InfoBipServiceSms;
 use App\Services\SmsService;
+use App\Services\SmsServiceFactory;
 use App\Services\SmsServiceInterface;
 use App\Services\UploadService;
 use App\Services\UploadServiceImpl;
@@ -40,7 +42,15 @@ class AppServiceProvider extends ServiceProvider
          $this->app->bind(UploadService::class, UploadServiceImpl::class);
          $this->app->bind(FirebaseServiceInterface::class, FirebaseService::class);
     
-
+        //  $this->app->singleton(SmsServiceInterface::class, function ($app) {
+        //     return new InfoBipServiceSms(
+        //         env('INFOBIP_API_KEY'),
+        //         env('INFOBIP_BASE_URL')
+        //     );
+        // });
+        $this->app->singleton(SmsServiceInterface::class, function ($app) {
+            return SmsServiceFactory::make();
+        });
         // Enregistrement du nom pour la facade
         $this->app->singleton('Client_repository',function($app){
             return new ClientRepositoryImpl();

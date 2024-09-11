@@ -6,7 +6,7 @@ use App\Models\Client;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Database;
 
-class FirebaseService implements FirebaseServiceInterface
+class FirebaseService implements ArchiveServiceCommunInterface
 {
     protected $database;
 
@@ -19,16 +19,16 @@ class FirebaseService implements FirebaseServiceInterface
         $this->database = $factory->createDatabase();
     }
 
-    public function getDatabase(): Database
-    {
-        return $this->database;
-    }
+    // public function getDatabase(): Database
+    // {
+    //     return $this->database;
+    // }
 
-    public function store($request)
-    {
-        $newData = $this->database->getReference(date('Y-m-d H:i:s'))->push($request);
-        return response()->json($newData->getValue());
-    }
+    // public function store($request)
+    // {
+    //     $newData = $this->database->getReference(date('Y-m-d H:i:s'))->push($request);
+    //     return response()->json($newData->getValue());
+    // }
     public function archiveDette($dette)
     {
         // dd($dette);

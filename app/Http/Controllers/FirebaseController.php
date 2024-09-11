@@ -14,25 +14,25 @@ class FirebaseController extends Controller
 
     public function __construct(FirebaseServiceInterface $firebase)
     {
-        $this->firebase = $firebase->getDatabase();
+        // $this->firebase = $firebase->getDatabase();
         // $this->firebasesave = $firebasesave->archiveDettes();
 
     }
 
-    public function index()
-    {
-        $reference = $this->firebase->getReference('test'); // Specify your data path
-        $snapshot = $reference->getSnapshot();
-        $value = $snapshot->getValue();
+    // public function index()
+    // {
+    //     $reference = $this->firebase->getReference('test'); // Specify your data path
+    //     $snapshot = $reference->getSnapshot();
+    //     $value = $snapshot->getValue();
 
-        return response()->json($value); // Return the data as JSON
-    }
+    //     return response()->json($value); // Return the data as JSON
+    // }
 
-    public function store(Request $request)
-    {
-        $newData = $this->firebase->getReference('test2')->push($request->all());
-        return response()->json($newData->getValue());
-    }
+    // public function store(Request $request)
+    // {
+    //     $newData = $this->firebase->getReference('test2')->push($request->all());
+    //     return response()->json($newData->getValue());
+    // }
     public function archiveDettes()
     {
         // Récupérer les dettes soldées

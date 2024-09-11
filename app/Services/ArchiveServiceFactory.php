@@ -2,16 +2,19 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class ArchiveServiceFactory
 {
     public static function create(): ArchiveServiceCommunInterface
     {
-        $service = env('ARCHIVE_SERVICE', 'mongodb'); // Par défaut, on utilise MongoDB
+        $service = env('ARCHIVE_SERVICE', 'MongoDB'); // Par défaut, on utilise MongoDB
+        Log::info($service);
 
         if ($service === 'firebase') {
-            return app(FirebaseService::class);
+            return app(FirebaseServiceInterface::class);
         }
 
-        return app(MongoDBService::class);
+        return app(ArchiveService::class);
     }
 }

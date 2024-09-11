@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
-
+use Jenssegers\Mongodb\MongoDBServiceProvider;
 return [
 
     /*
@@ -183,6 +183,7 @@ return [
         App\Providers\ImageUploadServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\MongoDBServiceProvider::class,
+     
 
     ])->toArray(),
 

@@ -68,12 +68,12 @@ class UserServiceImpl implements UserService
 
             $photoUrl = null;
 
-            dd($data['photo']);
+            // dd($data['photo']);
             // Si la photo est une chaîne représentant un chemin de fichier
             if (isset($data['photo']) && is_string($data['photo'])) {
                 $filePath = $data['photo']; // Le chemin du fichier
-    
                 // Transformer en instance UploadedFile
+    
                 $uploadedFile = new UploadedFile($filePath, basename($filePath), null, null, true);
     
                 // Utiliser le service d'upload pour stocker la photo sur Cloudinary

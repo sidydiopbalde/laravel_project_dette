@@ -13,6 +13,7 @@ use App\Http\Controllers\MongoTestController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\SmsController;
 use App\Http\Controllers\MongoDBTestController;
+use App\Http\Controllers\SmsbipController;
 use App\Jobs\ArchiveSoldeJob;
 
 Route::post('/v1/register', [UserController::class, 'storeUserClientExist']);
@@ -96,7 +97,7 @@ Route::post('/v1/test-sms', [SmsController::class, 'sendSms']);
 Route::post('/v1/test-mongo', [MongoDBTestController::class, 'testConnection']);
 // Route::get('/archive-dettes', [MongoTestController::class, 'archiveSoldedDettes']);
 Route::get('/v1/test-archive', function () {
-    ArchiveSoldeJob::dispatch(app(\App\Services\MongoDBService::class));
+    ArchiveSoldeJob::dispatch();
     return 'Job dispatched!';
 });
 
@@ -104,3 +105,6 @@ Route::get('/v1/test-archive', function () {
 Route::get('/firebase', [FirebaseController::class, 'index']);
 Route::post('/firebase', [FirebaseController::class, 'store']);
 Route::post('/firebaseSave', [FirebaseController::class, 'archiveDettes']);
+
+//infoBip sendSms
+Route::get('/v1/send-info_bip', [SmsbipController::class, 'sendSms']);

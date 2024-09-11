@@ -1,31 +1,37 @@
 <?php
+
 namespace App\Services;
 
-use Twilio\Rest\Client as TwilioClient; // Renommer Twilio Client en TwilioClient
-use App\Models\Client; // Renommer votre modèle Client en AppClient
+use App\Models\Client;
 use App\Models\Paiement;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use App\Services\Contracts\SMSInterface;
+use App\Services\SmsServiceInterface;
 
-class SmsService implements SmsServiceInterface
+class InfoBipServiceSms implements SmsServiceInterface
 {
-    protected $twilio;
+    protected $apiKey;
+    protected $baseUrl;
 
-    public function __construct()
+    public function __construct(string $apiKey, string $baseUrl)
     {
-        $sid = "AC3ad4a00e75bfcf3a16c273192db708d7";
-         $token = "e1483959057fff6ed00119a76dd2e154";
-        // $this->twilio = new TwilioClient(env('TWILIO_SID'), env('TWILIO_AUTH_TOKEN'));
-         $this->twilio = new TwilioClient($sid, $token);
+        $this->apiKey = $apiKey;
+        $this->baseUrl = $baseUrl;
     }
 
-    public function sendSms($to, $message)
+    public function sendSMS(string $to, string $message): bool
     {
-        $this->twilio->messages->create("+221784316538", [
-            'from' => "+12512442090",
-            'body' => $message
+        $response = Http::withHeaders([
+            'Authorization' => "App {$this->apiKey}",
+            'Content-Type' => 'application/json',
+        ])->post("{$this->baseUrl}/sms/2/text/single", [
+            'from' => 'VotreBoutique',
+            'to' => "+221784316538",
+            'text' => $message,
         ]);
-    }
 
+        return $response->successful();
+    }
     public function notifyClientsWithDebts()
     {
         $clients = Client::with(['dettes'])->get();
@@ -51,8 +57,5 @@ class SmsService implements SmsServiceInterface
                 $this->sendSms($client->telephone, $message);
             }
         }
-   
+    }
 }
-}
-
-
