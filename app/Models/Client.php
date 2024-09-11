@@ -25,8 +25,8 @@ class Client extends Model
 
      // Définir les attributs qui ne peuvent pas être assignés en masse
      protected $guarded = ['id', 'created_at', 'updated_at'];
-     protected $appends = ['photo'];
      protected $hidden=['id', 'created_at', 'updated_at'];
+     protected $appends = ['photo'];
      protected static function booted()
      {
          // Ajouter le scope global
@@ -39,7 +39,7 @@ class Client extends Model
         return $this->belongsTo(Users::class, 'user_id');
     }
       // Relation avec les dettes
-      public function dette()
+      public function dettes()
       {
           return $this->hasMany(Dette::class);
       }

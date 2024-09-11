@@ -29,7 +29,7 @@ class Clients extends Model
         return $this->belongsTo(Users::class, 'user_id');
     }
       // Relation avec les dettes
-      public function dette()
+      public function dettes()
       {
           return $this->hasMany(Dette::class);
       }

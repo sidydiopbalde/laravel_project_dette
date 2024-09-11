@@ -30,23 +30,44 @@ class ClientServiceImpl implements ClientService
         return ClientRepositoryFacade::getAll($filters);
     }
 
-    public function getClientById(int $id, bool $includeUser = false)
-    {
-        $client = ClientRepositoryFacade::findById($id);
+    // public function getClientById(int $id, bool $includeUser = false)
+    // {
+    //     $client = ClientRepositoryFacade::findById($id);
 
+    //     if (!$client) {
+    //         // Lever une ServiceException avec des détails
+    //         throw new ServiceException('Client not found', 404, null, ['client_id' => $id]);
+    //     }
+
+    //     if ($includeUser && $client->user && $client->user->photo) {
+    //         $client->user->photo = ClientRepositoryFacade::getBase64($client->user->photo);
+    //     }
+
+    //     return $client;
+    // }
+
+    public function getClientById(int $id)
+    {
+        // Récupérer le client par son ID
+        $client = ClientRepositoryFacade::findById($id);
+    
+        // Vérifier si le client existe
         if (!$client) {
-            // Lever une ServiceException avec des détails
+            // Lever une ServiceException si le client n'est pas trouvé
             throw new ServiceException('Client not found', 404, null, ['client_id' => $id]);
         }
-
-        if ($includeUser && $client->user && $client->user->photo) {
-            $client->user->photo = ClientRepositoryFacade::getBase64($client->user->photo);
+    
+        // Inclure les informations de l'utilisateur associé
+        if ($client->user) {
+            // Convertir la photo de l'utilisateur en base64 si elle existe
+            if ($client->user->photo) {
+                $client->user->photo = (new UploadServiceImpl())->encodePhotoToBase64($client->user->photo);
+            }
         }
-
+    
         return $client;
     }
-
-
+    
     public function findByTelephone(string $telephone)
     {
         $client = ClientRepositoryFacade::findByTelephone($telephone);

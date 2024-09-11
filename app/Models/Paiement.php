@@ -17,6 +17,6 @@ class Paiement extends Model
     // Relation avec Dette
     public function dette()
     {
-        return $this->belongsTo(Dette::class);
+        return $this->belongsTo(Dette::class,'dette_id');
     }
 }

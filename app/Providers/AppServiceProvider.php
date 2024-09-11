@@ -15,10 +15,14 @@ use App\Repository\PaiementRepository;
 use App\Repository\PaiementRepositoryImpl;
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryImpl;
+use App\Services\FirebaseService;
+use App\Services\FirebaseServiceInterface;
 use App\Services\PaiementService;
 use App\Services\PaiementServiceImpl;
 use App\Services\SmsService;
 use App\Services\SmsServiceInterface;
+use App\Services\UploadService;
+use App\Services\UploadServiceImpl;
 use App\Services\UserService;
 use App\Services\UserServiceImpl;
 use Illuminate\Support\ServiceProvider;
@@ -33,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ArticleRepository::class, ArticleRepositoryImpl::class);
          $this->app->bind(ArticleService::class, ArticleServiceImpl::class);
          $this->app->bind(SmsServiceInterface::class, SmsService::class);
+         $this->app->bind(UploadService::class, UploadServiceImpl::class);
+         $this->app->bind(FirebaseServiceInterface::class, FirebaseService::class);
     
 
         // Enregistrement du nom pour la facade

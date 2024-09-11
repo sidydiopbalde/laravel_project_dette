@@ -609,6 +609,45 @@
                 ]
             }
         },
+        "/api/v1/clients/{clientId}/dettes": {
+            "get": {
+                "tags": [
+                    "Dettes"
+                ],
+                "summary": "Récupérer les dettes d'un client",
+                "description": "Obtenir la liste des dettes pour un client spécifique",
+                "operationId": "b9fa42235d31876439e60968ab7cd328",
+                "parameters": [
+                    {
+                        "name": "clientId",
+                        "in": "path",
+                        "description": "ID du client",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des dettes récupérée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Dette"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Client non trouvé"
+                    }
+                }
+            }
+        },
         "/api/v1/dettes": {
             "post": {
                 "tags": [
@@ -616,18 +655,7 @@
                 ],
                 "summary": "Créer une nouvelle demande de crédit",
                 "description": "Créer une nouvelle demande de crédit pour un client spécifique",
-                "operationId": "71546e785ef594cbc1f1ff17c88e601a",
-                "parameters": [
-                    {
-                        "name": "clientId",
-                        "in": "path",
-                        "description": "ID du client pour lequel créer la demande de crédit",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
+                "operationId": "2b63b8e510eddacc9fb4b66d096fc357",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -697,19 +725,133 @@
                 }
             }
         },
-        "/api/articles/clients/{clientId}/dettes": {
-            "post": {
+        "/api/v1/dettes/{id}": {
+            "get": {
                 "tags": [
                     "Dettes"
                 ],
-                "summary": "Créer une nouvelle demande de crédit",
-                "description": "Créer une nouvelle demande de crédit pour un client spécifique",
-                "operationId": "781184dffab31f52ec83df447820a7de",
+                "summary": "Récupérer une dette spécifique",
+                "description": "Récupérer une dette en fonction de son ID",
+                "operationId": "0e84c3d33fbb4855fc03cdc7c709a6d7",
                 "parameters": [
                     {
-                        "name": "clientId",
+                        "name": "id",
                         "in": "path",
-                        "description": "ID du client pour lequel créer la demande de crédit",
+                        "description": "ID de la dette",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dette trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Dette"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dette non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/dettes/{id}/articles": {
+            "get": {
+                "tags": [
+                    "Dettes"
+                ],
+                "summary": "Récupérer les articles d'une dette",
+                "description": "Récupérer les articles associés à une dette spécifique",
+                "operationId": "3911ad6e6b211deb764457e9fd88884c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la dette",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Articles récupérés avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Article"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aucun article trouvé pour cette dette"
+                    }
+                }
+            }
+        },
+        "/api/v1/dettes/{id}/paiements": {
+            "get": {
+                "tags": [
+                    "Dettes"
+                ],
+                "summary": "Récupérer les paiements d'une dette",
+                "description": "Récupérer les paiements associés à une dette spécifique",
+                "operationId": "366f84aa13833e0b51da1d08777b8e3a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la dette",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paiements récupérés avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Paiement"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aucun paiement trouvé pour cette dette"
+                    }
+                }
+            }
+        },
+        "/api/v1/dettes/{detteId}/paiements": {
+            "post": {
+                "tags": [
+                    "Paiements"
+                ],
+                "summary": "Effectuer un paiement sur une dette",
+                "description": "Permet d'effectuer un paiement sur une dette spécifique.",
+                "operationId": "c8673f4ed9e82f3b994c74b6348a12ea",
+                "parameters": [
+                    {
+                        "name": "detteId",
+                        "in": "path",
+                        "description": "ID de la dette sur laquelle le paiement sera effectué",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -722,45 +864,13 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "montant",
-                                    "articles"
+                                    "montant"
                                 ],
                                 "properties": {
                                     "montant": {
                                         "type": "number",
                                         "format": "float",
                                         "example": 1000
-                                    },
-                                    "articles": {
-                                        "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "articleId": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "qteVente": {
-                                                    "type": "integer",
-                                                    "example": 5
-                                                },
-                                                "prixVente": {
-                                                    "type": "number",
-                                                    "format": "float",
-                                                    "example": 100
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "paiement": {
-                                        "properties": {
-                                            "montant": {
-                                                "type": "number",
-                                                "format": "float",
-                                                "example": 500
-                                            }
-                                        },
-                                        "type": "object"
                                     }
                                 },
                                 "type": "object"
@@ -769,18 +879,64 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Dette créée avec succès",
+                    "200": {
+                        "description": "Paiement effectué avec succès",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Dette"
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Paiement effectué avec succès"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "dette_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "montant": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 1000
+                                                },
+                                                "date": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-09-10T10:00:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
                     },
                     "400": {
-                        "description": "Requête invalide"
+                        "description": "Erreur lors du paiement",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erreur lors du paiement"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Montant trop élevé"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -881,6 +1037,46 @@
                 },
                 "type": "object"
             },
+            "Paiement": {
+                "title": "Paiement",
+                "required": [
+                    "id",
+                    "dette_id",
+                    "montant",
+                    "date"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "dette_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "montant": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 150.75
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2023-09-01"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-09-01T00:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-09-01T00:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
             "Dette": {
                 "title": "Dette",
                 "required": [
@@ -952,6 +1148,10 @@
         {
             "name": "Dettes",
             "description": "Dettes"
+        },
+        {
+            "name": "Paiements",
+            "description": "Paiements"
         }
     ],
     "security": [

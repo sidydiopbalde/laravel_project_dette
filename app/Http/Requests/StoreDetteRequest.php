@@ -14,7 +14,7 @@ class StoreDetteRequest extends FormRequest
     public function rules()
     {
         return [
-            'montant' => 'required|numeric|min:0',
+            // 'montant' => 'required|numeric|min:0',
             'clientId' => 'required|exists:clients,id',
             'articles' => 'required|array',
             'articles.*.articleId' => 'required|exists:articles,id',
@@ -27,9 +27,9 @@ class StoreDetteRequest extends FormRequest
     public function messages()
     {
         return [
-            'montant.required' => 'Le montant est requis.',
-            'montant.numeric' => 'Le montant doit être un nombre.',
-            'montant.min' => 'Le montant doit être supérieur ou égal à 0.',
+            // 'montant.required' => 'Le montant est requis.',
+            // 'montant.numeric' => 'Le montant doit être un nombre.',
+            // 'montant.min' => 'Le montant doit être supérieur ou égal à 0.',
             'clientId.required' => 'L\'ID du client est requis.',
             'clientId.exists' => 'L\'ID du client doit exister dans la base de données.',
             'articles.required' => 'Les articles sont requis.',

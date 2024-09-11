@@ -57,4 +57,5 @@ interface ClientRepository
      */
     public function delete(int $id);
     public function storePhoto($photo);
+    public function getClientWithDebtswithArticle();
 }

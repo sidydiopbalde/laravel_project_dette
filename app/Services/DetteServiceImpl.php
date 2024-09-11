@@ -51,15 +51,21 @@ class DetteServiceImpl implements DetteService
     {
         return DetteRepositoryFacade::findById($id);
     }
-   public function createDette(array $data)
+    public function createDette(array $data)
     {
         // Démarrer une transaction pour garantir l'intégrité des données
         DB::beginTransaction();
-        
+
         try {
-            // Créer la dette
+            // Calculer le montant total de la dette
+            $montantTotal = 0;
+            foreach ($data['articles'] as $articleData) {
+                $montantTotal += $articleData['qte'] * $articleData['prix_unitaire'];
+            }
+
+            // Créer la dette avec le montant calculé
             $dette = DetteRepositoryFacade::create([
-                'montant' => $data['montant'],
+                'montant' => $montantTotal,  // Utiliser le montant total calculé
                 'client_id' => $data['clientId'],
             ]);
 
@@ -86,11 +92,9 @@ class DetteServiceImpl implements DetteService
 
             // Ajouter les informations de paiement si présentes
             if (isset($data['paiement']['montant'])) {
-
                 if ($data['paiement']['montant'] > $dette->montant) {
                     throw new \Exception('Le montant du paiement ne peut pas être supérieur au montant de la dette.');
                 }
-
 
                 Paiement::create([
                     'dette_id' => $dette->id,
@@ -100,7 +104,8 @@ class DetteServiceImpl implements DetteService
 
             // Commit la transaction pour valider toutes les opérations
             DB::commit();
-    // Charger les relations client et articles
+
+            // Charger les relations client et articles
             $dette->load('client', 'articles');
 
             // Retourner la réponse avec les données et le statut 201
@@ -112,13 +117,14 @@ class DetteServiceImpl implements DetteService
                     'articles' => $dette->articles,
                 ]
             ], 201);
-            // return $dette;
+
         } catch (\Exception $e) {
             // En cas d'erreur, rollback la transaction
             DB::rollBack();
             throw $e;
         }
     }
+
 public function addArticlesToDette(array $articlesData, int $detteId)
 {
     // Démarrer une transaction pour garantir l'intégrité des données

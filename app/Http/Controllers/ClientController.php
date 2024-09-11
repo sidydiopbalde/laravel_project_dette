@@ -168,10 +168,10 @@ class ClientController extends Controller
  */
 
      
-    public function show(Request $request, $id)
+    public function show($id)
     {
-            $includeUser = $request->query('include') === 'user';
-            $client = ClientServiceFacade::getClientById($id, $includeUser);
+            // $includeUser = $request->query('include') === 'user';
+            $client = ClientServiceFacade::getClientById($id);
             return $client;
        
     }
@@ -182,6 +182,7 @@ class ClientController extends Controller
             $client = Client::with('user')->find($id);
              return $client;      
     }
+    
 /**
  * @OA\Post(
  *     path="/api/v1/clients",

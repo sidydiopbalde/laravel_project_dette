@@ -8,37 +8,38 @@ use App\Http\Resources\UserResource;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-// /**
-//  * @OA\Schema(
-//  *     schema="User",
-//  *     type="object",
-//  *     required={"id", "prenom", "nom", "mail", "login"},
-//  *     @OA\Property(property="id", type="integer", format="int64", example=1),
-//  *     @OA\Property(property="prenom", type="string", example="John"),
-//  *     @OA\Property(property="nom", type="string", example="Doe"),
-//  *     @OA\Property(property="mail", type="string", example="john.doe@example.com"),
-//  *     @OA\Property(property="login", type="string", example="johndoe"),
-//  *     @OA\Property(property="photo", type="string", example="path/to/photo.jpg"),
-//  *     @OA\Property(property="role_id", type="integer", format="int64", example=3),
-//  *     @OA\Property(property="active", type="boolean", example=true),
-//  *     @OA\Property(property="created_at", type="string", format="date-time", example="2021-01-01T00:00:00Z"),
-//  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2021-01-01T00:00:00Z")
-//  * )
-//  */
-// /**
-//  * @OA\Schema(
-//  *     schema="UserWithClient",
-//  *     type="object",
-//  *     required={"prenom", "nom", "mail", "login", "password", "client_id"},
-//  *     @OA\Property(property="prenom", type="string", example="John"),
-//  *     @OA\Property(property="nom", type="string", example="Doe"),
-//  *     @OA\Property(property="mail", type="string", example="john.doe@example.com"),
-//  *     @OA\Property(property="login", type="string", example="johndoe"),
-//  *     @OA\Property(property="password", type="string", example="password123"),
-//  *     @OA\Property(property="client_id", type="integer", format="int64", example=1),
-//  *     @OA\Property(property="photo", type="string", example="path/to/photo.jpg"),
-//  * )
-//  */
+
+/**
+ * @OA\Schema(
+ *     schema="User",
+ *     type="object",
+ *     required={"id", "prenom", "nom", "mail", "login","password"},
+ *     @OA\Property(property="id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="prenom", type="string", example="John"),
+ *     @OA\Property(property="nom", type="string", example="Doe"),
+ *     @OA\Property(property="mail", type="string", example="john.doe@example.com"),
+ *     @OA\Property(property="login", type="string", example="johndoe"),
+ *     @OA\Property(property="photo", type="string", example="path/to/photo.jpg"),
+ *     @OA\Property(property="role_id", type="integer", format="int64", example=3),
+ *     @OA\Property(property="active", type="boolean", example=true),
+ *     @OA\Property(property="created_at", type="string", format="date-time", example="2021-01-01T00:00:00Z"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", example="2021-01-01T00:00:00Z")
+ * )
+ */
+/**
+ * @OA\Schema(
+ *     schema="UserWithClient",
+ *     type="object",
+ *     required={"prenom", "nom", "mail", "login", "password", "client_id"},
+ *     @OA\Property(property="prenom", type="string", example="John"),
+ *     @OA\Property(property="nom", type="string", example="Doe"),
+ *     @OA\Property(property="mail", type="string", example="john.doe@example.com"),
+ *     @OA\Property(property="login", type="string", example="johndoe"),
+ *     @OA\Property(property="password", type="string", example="password123"),
+ *     @OA\Property(property="client_id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="photo", type="string", example="path/to/photo.jpg"),
+ * )
+ */
 class UserController extends Controller
 {
     protected $userService;
@@ -48,7 +49,7 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-//     /**
+//   /**
 //  * @OA\Get(
 //  *     path="/api/v1/users",
 //  *     summary="List all users",
@@ -85,108 +86,145 @@ class UserController extends Controller
         return $users;
     }
     
-//    /**
-//      * @OA\Post(
-//      *     path="/api/registerUser",
-//      *     summary="Create a new user",
-//      *     tags={"Users"},
-//      *     @OA\RequestBody(
-//      *         required=true,
-//      *         @OA\JsonContent(ref="#/components/schemas/User")
-//      *     ),
-//      *     @OA\Response(
-//      *         response=200,
-//      *         description="User created successfully",
-//      *         @OA\JsonContent(ref="#/components/schemas/User")
-//      *     ),
-//      *     @OA\Response(
-//      *         response=400,
-//      *         description="Invalid input"
-//      *     )
-//      * )
-//      */
+    /**
+     * @OA\Post(
+     *     path="/api/registerUser",
+     *     summary="Create a new user",
+     *     tags={"Users"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User created successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid input"
+     *     )
+     * )
+     */
     public function store(StoreUserRequest $request)
     {
         $validatedData = $request->validated();
-        
         $user = $this->userService->createUser($validatedData);
         return $user;
     }
 
-    // /**
-    //  * @OA\Post(
-    //  *     path="/api/v1/register",
-    //  *     summary="Create a new user and associate with a client",
-    //  *     tags={"Users"},
-    //  *     @OA\RequestBody(
-    //  *         required=true,
-    //  *         @OA\JsonContent(ref="#/components/schemas/UserWithClient")
-    //  *     ),
-    //  *     @OA\Response(
-    //  *         response=200,
-    //  *         description="User created and associated with client",
-    //  *         @OA\JsonContent(ref="#/components/schemas/User")
-    //  *     ),
-    //  *     @OA\Response(
-    //  *         response=500,
-    //  *         description="Error during creation"
-    //  *     )
-    //  * )
-    //  */
+    /**
+     * @OA\Post(
+     *     path="/api/v1/register",
+     *     summary="Create a new user and associate with a client",
+     *     tags={"Users"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UserWithClient")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User created and associated with client",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error during creation"
+     *     )
+     * )
+     */
     public function storeUserClientExist(StoreUserClientExistRequest $request)
     {
         $validatedData = $request->validated();
 
-        // Ajout de la logique pour gérer l'upload de la photo
         if ($request->hasFile('photo')) {
-            $validatedData['photo'] = $request->file('photo')->store('photos', 'public');
+            $validatedData['photo'] = $request->file('photo');
         }
 
-    
-            $user = $this->userService->storeUserClientExist($validatedData);
-            return $user;
-        
+        $user = $this->userService->storeUserClientExist($validatedData);
+        return $user;
     }
-    //     /**
-    //  * @OA\Get(
-    //  *     path="/api/v1/users/{id}",
-    //  *     summary="Get a user by ID",
-    //  *     tags={"Users"},
-    //  *     @OA\Parameter(name="id", in="path", description="ID of the user", required=true, @OA\Schema(type="integer")),
-    //  *     @OA\Response(
-    //  *         response=200,
-    //  *         description="User details",
-    //  *         @OA\JsonContent(ref="#/components/schemas/User")
-    //  *     ),
-    //  *     @OA\Response(
-    //  *         response=404,
-    //  *         description="User not found"
-    //  *     )
-    //  * )
-    //  */
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/users/{id}",
+     *     summary="Get a user by ID",
+     *     tags={"Users"},
+     *     @OA\Parameter(name="id", in="path", description="ID of the user", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User details",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     )
+     * )
+     */
     public function show($id)
     {
-            $user = $this->userService->getUserById($id);
-            return $user;
+        $user = $this->userService->getUserById($id);
+        return $user;
     }
 
-
+    /**
+     * @OA\Put(
+     *     path="/api/v1/users/{id}",
+     *     summary="Update a user by ID",
+     *     tags={"Users"},
+     *     @OA\Parameter(name="id", in="path", description="ID of the user", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="prenom", type="string", example="John"),
+     *             @OA\Property(property="nom", type="string", example="Doe"),
+     *             @OA\Property(property="login", type="string", example="johndoe"),
+     *             @OA\Property(property="password", type="string", example="newpassword123"),
+     *             @OA\Property(property="role", type="string", example="Client"),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User updated successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid input"
+     *     )
+     * )
+     */
     public function update(Request $request, $id)
     {
-      
-            $validatedData = $request->validate([
-                'prenom' => 'sometimes|string|max:255',
-                'nom' => 'sometimes|string|max:255',
-                'login' => 'sometimes|string|max:255|unique:users,login,' . $id,
-                'password' => 'sometimes|string|min:8',
-                'role' => 'sometimes|in:ADMIN,Boutiquier,Client',
-            ]);
+        $validatedData = $request->validate([
+            'prenom' => 'sometimes|string|max:255',
+            'nom' => 'sometimes|string|max:255',
+            'login' => 'sometimes|string|max:255|unique:users,login,' . $id,
+            'password' => 'sometimes|string|min:8',
+            'role' => 'sometimes|in:ADMIN,Boutiquier,Client',
+        ]);
 
-            $user = $this->userService->updateUser($id, $validatedData);
-            return  $user;
-       
+        $user = $this->userService->updateUser($id, $validatedData);
+        return $user;
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/users/{id}",
+     *     summary="Delete a user by ID",
+     *     tags={"Users"},
+     *     @OA\Parameter(name="id", in="path", description="ID of the user", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User deleted successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     )
+     * )
+     */
     public function destroy($id)
     {
         try {

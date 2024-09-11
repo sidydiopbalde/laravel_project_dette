@@ -27,15 +27,16 @@ class Dette extends Model
 
     protected $fillable = ['client_id', 'montant'];
     protected $hidden=['id','created_at','updated_at'];
+    protected $appends=['montant_verse','montant_du'];
     public function client()
     {
-        return $this->belongsTo(Clients::class);
+        return $this->belongsTo(Client::class);
 
     }
     // Relation avec Paiements
     public function paiements()
     {
-        return $this->hasMany(Paiement::class);
+        return $this->hasMany(Paiement::class,'dette_id');
     }
 
     public function articles()
@@ -45,12 +46,39 @@ class Dette extends Model
                     ->withTimestamps();
     }
       // Scope local pour filtrer les dettes soldées ou non soldées
-      public function scopeStatut($query, $statut)
-      {
-          return $query->where(function ($q) use ($statut) {
-              // Calcul de la somme des paiements pour chaque dette
-              $q->whereRaw('(SELECT SUM(montant) FROM paiements WHERE paiements.dette_id = dettes.id) ' .
-                           ($statut == 'Solde' ? '>=' : '<') . ' dettes.montant');
-          });
-      }
+    //   public function scopeStatut($query, $statut)
+    //   {
+    //       return $query->where(function ($q) use ($statut) {
+    //           // Calcul de la somme des paiements pour chaque dette
+    //           $q->whereRaw('(SELECT SUM(montant) FROM paiements WHERE paiements.dette_id = dettes.id) ' .
+    //                        ($statut == 'Solde' ? '>=' : '<') . ' dettes.montant');
+    //       });
+    //   }
+    public function scopeStatut($query, $statut)
+{
+    if ($statut === 'Solde') {
+        return $query->whereRaw('(SELECT COALESCE(SUM(montant), 0) FROM paiements WHERE paiements.dette_id = dettes.id) >= dettes.montant');
+    } elseif ($statut === 'NonSolde') {
+        return $query->whereRaw('(SELECT COALESCE(SUM(montant), 0) FROM paiements WHERE paiements.dette_id = dettes.id) < dettes.montant');
+    }
+    
+    return $query;
+}
+
+      public function getMontantVerseAttribute()
+    {
+        // Exemple de calcul : additionner tous les paiements liés à cette dette
+        return $this->paiements()->sum('montant');
+    }
+
+    /**
+     * Calculer le montant dû pour cette dette.
+     *
+     * @return float
+     */
+    public function getMontantDuAttribute()
+    {
+        // Exemple de calcul : Montant total - Montant versé
+        return $this->montant - $this->montant_verse;
+    }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use App\Models\Client;
 use MongoDB\Client as MongoClient;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -10,16 +11,14 @@ class ArchiveService
     protected $mongoClient;
     protected $collection;
 
-    public function __construct()
+    public function __construct(MongoDBService $mongoConnection )
     {
-        // Se connecter à MongoDB avec le client MongoDB
-        // $this->mongoClient = new MongoClient(config('services.mongodb.uri'));
-        // $this->collection = $this->mongoClient->selectCollection(config('services.mongodb.database'), 'archive_db');
-        $this->mongoClient = new MongoClient(env('MONGODB_URI'));
-        $databaseName = env('MONGO_DATABASE', 'laravel_bd');
-        Log::info(env('MONGO_DATABASE'));
+        $this->mongoClient = $mongoConnection->getClient();
+        $databaseName="laravel_bd";
         $this->collection = $this->mongoClient->selectCollection($databaseName, 'archivage_dette');
+
     }
+    
 
     public function archiveInMongoDB($dette)
     {
@@ -34,7 +33,52 @@ class ArchiveService
 
         return $result->isAcknowledged();
     }
- 
+    public function archiveDette($dette)
+    {
+        // Nommer la collection par date
+        $collectionName = now()->format('Y-m-d');
+    // Récupérer les informations du client
+        $client = Client::find($dette->client_id);
+        // Préparer les données à archiver
+        $data = [
+            'client' => [
+                'id' => $client->id,
+                'surnom' => $client->surnom,  // Assurer que ce champ existe dans le modèle Client
+                'telephone' => $client->telephone,  // Assurer que ce champ existe dans le modèle Client
+                'dette' => [
+                    'id' => $dette->id,
+                    'montant' => $dette->montant,
+                    'date' => $dette->created_at->format('Y-m-d'),
+                    'paiements' => $dette->paiements->map(function ($paiement) {
+                        return [
+                            'id' => $paiement->id,
+                            'montant' => $paiement->montant,
+                            'date' => $paiement->created_at->format('Y-m-d'),
+                        ];
+                    })->toArray(),
+                    'articles' => $dette->articles->map(function ($article) {
+                        return [
+                            'id' => $article->id,
+                            'libelle' => $article->libelle,
+                            'qte' => $article->pivot->qte_vente,
+                            'prix_unitaire' => $article->pivot->prix_vente,
+                        ];
+                    })->toArray(),
+                ],
+            ],
+        ];
+
+        // Insertion dans la collection MongoDB
+        app('mongodb')->collection($collectionName)->insertOne([
+            'client_id' => $dette->client_id,
+            'dette_id' => $dette->id,
+            'data' => $data,
+            'archived_at' => now()->toDateTimeString(),
+        ]);
+
+
+        return true;
+    }
 
 public function getSoldesDettes()
 {

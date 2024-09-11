@@ -8,7 +8,7 @@ use App\Exceptions\ServiceException;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-
+  use Illuminate\Http\UploadedFile;
 class UserServiceImpl implements UserService
 {
     protected $userRepository;
@@ -17,7 +17,10 @@ class UserServiceImpl implements UserService
     {
         $this->userRepository = $userRepository;
     }
+  
 
+  
+    
     public function getAllUsers($filters = [])
     {
         return $this->userRepository->getAllUsers($filters);
@@ -63,6 +66,25 @@ class UserServiceImpl implements UserService
             // Début de la transaction
             DB::beginTransaction();
 
+            $photoUrl = null;
+
+            dd($data['photo']);
+            // Si la photo est une chaîne représentant un chemin de fichier
+            if (isset($data['photo']) && is_string($data['photo'])) {
+                $filePath = $data['photo']; // Le chemin du fichier
+    
+                // Transformer en instance UploadedFile
+                $uploadedFile = new UploadedFile($filePath, basename($filePath), null, null, true);
+    
+                // Utiliser le service d'upload pour stocker la photo sur Cloudinary
+                $photoUrl = app(UploadService::class)->upload($uploadedFile);
+            }
+            // $cloudinaryService = app(UploadService::class);
+            // $photoUrl = null;
+            // if (isset($data['photo'])) {
+            //     $photoUrl = $cloudinaryService->upload($data['photo'],'images');
+            // }
+    
             // Création de l'utilisateur
             $userData = [
                 'prenom' => $data['prenom'],
@@ -71,7 +93,7 @@ class UserServiceImpl implements UserService
                 'login' => $data['login'],
                 'mail' => $data['mail'],
                 'role_id' => 3,
-                'photo' => $data['photo'] ?? null,
+                'photo' => $photoUrl ?? null,
             ];
 
             $user = User::create($userData);

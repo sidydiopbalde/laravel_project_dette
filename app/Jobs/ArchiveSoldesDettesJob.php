@@ -33,7 +33,7 @@ class ArchiveSoldesDettesJob implements ShouldQueue
         Log::info($dettes);
         // Archiver chaque dette dans MongoDB via le service d'archivage
         foreach ($dettes as $dette) {
-            app(ArchiveService::class)->archiveInMongoDB($dette); // Appel du service d'archivage
+            app(ArchiveService::class)->archiveDette($dette); // Appel du service d'archivage
 
             // Supprimer ou marquer la dette comme archivée dans la base SQL
             $dette->delete();

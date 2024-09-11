@@ -15,10 +15,10 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->job(new SendDettesSmsJob)->weeklyOn(5, '14:00'); 
     
-         $schedule->job(new ArchiveSoldesDettesJob)->everyMinute();
+         //$schedule->job(new ArchiveSoldesDettesJob)->everyMinute();
 
         // $schedule->command('images:retry-upload')->everyTwoMinutes();
-       // $schedule->job(new SendDettesSmsJob(app()->make('App\Services\SmsService')))->everyMinute();
+        $schedule->job(new SendDettesSmsJob(app()->make('App\Services\SmsService')))->everyMinute();
     }
    
     

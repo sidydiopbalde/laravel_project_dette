@@ -19,7 +19,7 @@ class UploadServiceImpl implements UploadService
     }
     public function getBase64(string $filePath): string
     {
-        dd($filePath);
+        // dd($filePath);
         // Vérifier si le fichier existe
         if (Storage::disk('public')->exists($filePath)) {
             // Obtenir le contenu du fichier

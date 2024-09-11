@@ -8,12 +8,15 @@ use App\Http\Controllers\UserControllers;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DetteController;
+use App\Http\Controllers\FirebaseController;
 use App\Http\Controllers\MongoTestController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\SmsController;
 use App\Http\Controllers\MongoDBTestController;
+use App\Jobs\ArchiveSoldeJob;
 
-Route::middleware(['auth:api', 'can:accessAdminRoutes,App\Models\User','json.response'])->post('/v1/register', [UserController::class, 'storeUserClientExist'])->name('users.registerClient');
+Route::post('/v1/register', [UserController::class, 'storeUserClientExist']);
+// Route::middleware(['auth:api', 'can:accessAdminRoutes,App\Models\User','json.response'])->post('/v1/register', [UserController::class, 'storeUserClientExist'])->name('users.registerClient');
 
 Route::prefix('v1')->middleware('json.response')->group(function () {
     // Authentification et utilisateur
@@ -33,8 +36,8 @@ Route::prefix('v1')->middleware('json.response')->group(function () {
     // Routes pour les clients protégées par authentification
     Route::prefix('clients')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('clients.index');
-        Route::get('{id}', [ClientController::class, 'show'])->name('clients.show');
         Route::get('{id}/dettes', [DetteController::class, 'listDettes'])->name('clients.dettes');
+        Route::get('{id}/users', [ClientController::class, 'showClientWithUser'])->name('clients.show');
         Route::post('/', [ClientController::class, 'store'])->name('clients.store');
         Route::put('{id}', [ClientController::class, 'update'])->name('clients.update');
         Route::patch('{id}', [ClientController::class, 'update'])->name('clients.partial_update');
@@ -42,6 +45,7 @@ Route::prefix('v1')->middleware('json.response')->group(function () {
         Route::post('/telephone', [ClientController::class, 'findByTelephone'])->name('clients.telephone');
         Route::post('/filter', [ClientController::class, 'filter'])->name('clients.filter');
     });
+    // Route::get('clients/{id}/users', [ClientController::class, 'show']);
 
     // Routes pour les articles protégées par authentification
     Route::prefix('articles')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
@@ -61,8 +65,8 @@ Route::prefix('v1')->middleware('json.response')->group(function () {
     // Routes pour les dettes protégées par authentification
     Route::prefix('dettes')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
         Route::post('/', [DetteController::class, 'store']);
-        Route::get('/', [DetteController::class, 'scope_Dette_by_statut']);//Solde ou NonSolde
-        Route::get('/{id}', [DetteController::class, 'show']);
+        Route::get('/', [DetteController::class, 'showStatut']);//Solde ou NonSolde
+         Route::get('/{id}', [DetteController::class, 'show']);
         Route::put('/{id}', [DetteController::class, 'update']);
         Route::delete('/{id}', [DetteController::class, 'delete']);
         Route::get('/client/{clientId}', [DetteController::class, 'getDebtsByClient']);
@@ -91,3 +95,12 @@ Route::get('/v1/test-twilio', function () {
 Route::post('/v1/test-sms', [SmsController::class, 'sendSms']);
 Route::post('/v1/test-mongo', [MongoDBTestController::class, 'testConnection']);
 // Route::get('/archive-dettes', [MongoTestController::class, 'archiveSoldedDettes']);
+Route::get('/v1/test-archive', function () {
+    ArchiveSoldeJob::dispatch(app(\App\Services\MongoDBService::class));
+    return 'Job dispatched!';
+});
+
+// Route pour archiver les dettes soldées dans Firebase
+Route::get('/firebase', [FirebaseController::class, 'index']);
+Route::post('/firebase', [FirebaseController::class, 'store']);
+Route::post('/firebaseSave', [FirebaseController::class, 'archiveDettes']);
