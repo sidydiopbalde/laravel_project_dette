@@ -14,6 +14,9 @@ class EventServiceProvider extends ServiceProvider
             UploadImageListener::class,
             SendEmailListener::class,
         ],
+        \App\Events\UsersCreated::class => [
+            \App\Jobs\UploadUserPhotoJob::class,
+        ],
     ];
 
     public function boot()

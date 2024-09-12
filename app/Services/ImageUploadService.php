@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use GuzzleHttp\Psr7\UploadedFile;
+use Illuminate\Support\Facades\Log;
 
 class ImageUploadService
 {
@@ -22,13 +23,14 @@ class ImageUploadService
     public function uploadImage($file, $type, $customPath = null)
     {
         $folder = $customPath ?? ($type === 'image' ? 'images' : 'documents');
-        $file=Storage::path($file);
-        
+        $filePath=Storage::path($file);
+       // $filePath = $file->getRealPath();
         // dd("sidy",$file,Storage::exists($file));
-        $uploadedFile = Cloudinary::upload($file, [
+        $uploadedFile = Cloudinary::upload($filePath, [
             'folder' => $folder
         ]);
-        // Log::info('Uploading file', ['file' => $uploadedFile]);
+        // dd($uploadedFile);
+         Log::info('Uploading file', ['file' => $uploadedFile]);
         return $uploadedFile->getSecurePath();
     }
     // public function uploadImage($file, $type, $customPath = null)

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\DetteService;
 use App\Http\Requests\StoreDetteRequest;
 use App\Facades\DetteServiceFacade;
+use App\Http\Resources\ClientResource;
 use Illuminate\Support\Facades\DB;
 /**
  * @OA\Schema(
@@ -68,6 +69,9 @@ class DetteController extends Controller
     {
         // Récupérer les dettes du client par ID
         $dettes = Dette::where('client_id', $clientId)->get();
+        if ($dettes->isEmpty()) {
+            return response()->json(['message' => 'Pas de dette pour le client'], 404);
+        }
         return $dettes;
     }
 
@@ -185,7 +189,7 @@ class DetteController extends Controller
      */
     public function listArticles($id)
     {
-        try {
+       
             // Appel au service pour récupérer les articles de la dette
             $articles = DetteServiceFacade::getArticlesByDetteId($id);
             if($articles){
@@ -194,18 +198,14 @@ class DetteController extends Controller
                     'message' => 'Articles récupérés avec succès',
                     'data' => $articles
                 ], 200);
+            }else{
+                return response()->json([
+                   'success' => false,
+                   'message' => 'Aucun article trouvé pour cette dette',
+                ], 404);
             }
-            return response()->json([
-               'success' => false,
-               'message' => 'Aucun article trouvé pour cette dette',
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des articles',
-                'error' => $e->getMessage()
-            ], 404);
-        }
+          
+       
     }
 
     /**
@@ -234,45 +234,72 @@ class DetteController extends Controller
      */
     public function listPaiements($id)
     {
-        try {
+      
             // Appel au service pour récupérer les paiements de la dette
             $paiements = DetteServiceFacade::getPaiementsByDetteId($id);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Paiements récupérés avec succès',
-                'data' => $paiements
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des paiements',
-                'error' => $e->getMessage()
-            ], 404);
-        }
+            if($paiements){
+                return response()->json([
+                   'success' => true,
+                   'message' => 'Paiements récupérés avec succès',
+                    'data' => $paiements
+                ], 200);
+            }
+            else{
+                return response()->json([
+                   'success' => false,
+                   'message' => 'Aucun paiement trouvé pour cette dette',
+                ], 404);
+            }
+       
     }
+
+   
 
     public function showStatut(Request $request)
     {
         // Récupérer le statut depuis la requête (par exemple, ?statut=Solde)
         $statut = $request->query('statut');
+        
+        // Vérifier si le statut est valide
+        if (!in_array($statut, ['Solde', 'NonSolde'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Statut invalide',
+            ], 400);
+        }
+    
         // Construire la requête
         $query = Dette::query();
+        
         // Appliquer le scope statut si un statut est fourni
         if ($statut) {
             $query->statut($statut);
         }
-        // Récupérer les dettes
-        $dettes = $query->get();
-        if($dettes->isEmpty()) {
+    
+        // Charger la relation client
+        $dettes = $query->with('client')->get();
+        
+        if ($dettes->isEmpty()) {
             return response()->json([
-               'success' => false,
-               'message' => 'Aucune dette trouvée avec ce statut',
+                'success' => false,
+                'message' => 'Aucune dette trouvée avec ce statut',
             ], 404);
         }
+    
+        // Utiliser ClientResource pour transformer les données du client
+        $dettes = $dettes->map(function ($dette) {
+            return [
+                'dette' => $dette,
+                'client' => new ClientResource($dette->client),
+            ];
+        });
+    
         return response()->json([
+            'success' => true,
             'message' => 'Dettes récupérées avec succès',
             'data' => $dettes
         ], 200);
     }
+    
+    
 }

@@ -2,13 +2,17 @@
 
 namespace App\Services;
 
+use App\Events\UserCreated;
+use App\Events\UsersCreated;
 use App\Repository\UserRepository;
 use Exception;
 use App\Exceptions\ServiceException;
+use App\Facades\UploadCloudImageFacade;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
   use Illuminate\Http\UploadedFile;
+  use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 class UserServiceImpl implements UserService
 {
     protected $userRepository;
@@ -37,11 +41,34 @@ class UserServiceImpl implements UserService
 
     public function createUser(array $data)
     {
-        // Vérifier si le login existe déjà
-    //   if($data['role_id'])
-       
-        return $this->userRepository->createUser($data);
-    }
+        if (isset($data['photo']) && $data['photo'] instanceof UploadedFile) {
+            // Appeler le service d'upload pour sauvegarder la photo
+            // dd($data);
+            // $uploadedFileUrl = app(ImageUploadService::class)->uploadImage($data['photo'], 'image');
+            $folder = 'images';
+            // $filePath=Storage::path($file);
+           $filePath = $data['photo']->getRealPath();
+           // dd("sidy",$file,Storage::exists($file));
+           $uploadedFileUrl = Cloudinary::upload($filePath, [
+               'folder' => $folder
+            ]);
+            $uploadedFileUrl = $uploadedFileUrl->getSecurePath();
+            // dd($uploadedFileUrl);
+            // Vérifier si l'upload a réussi
+            if ($uploadedFileUrl) {
+                // Mettre à jour l'URL de la photo dans le tableau de données
+                $data['photo'] = $uploadedFileUrl;
+            } else {
+                throw new \Exception("Erreur lors de l'upload de la photo.");
+            }
+        }
+        //  $user=$this->userRepository->createUser($data);
+        // if (isset($data['photo']) && $data['photo'] instanceof UploadedFile) {
+            //     $filePath = $data['photo']->store('temp');
+            //     event(new UsersCreated($user,  $filePath));
+            // }
+          return $this->userRepository->createUser($data);
+        }
 
     public function updateUser($id, array $data)
     {
@@ -70,15 +97,17 @@ class UserServiceImpl implements UserService
 
             // dd($data['photo']);
             // Si la photo est une chaîne représentant un chemin de fichier
-            if (isset($data['photo']) && is_string($data['photo'])) {
-                $filePath = $data['photo']; // Le chemin du fichier
-                // Transformer en instance UploadedFile
+            // if (isset($data['photo'])) {
+            //     $filePath = $data['photo']; // Le chemin du fichier
+            //     // Transformer en instance UploadedFile
     
-                $uploadedFile = new UploadedFile($filePath, basename($filePath), null, null, true);
+            //     $uploadedFile = new UploadedFile($filePath, basename($filePath), null, null, true);
     
-                // Utiliser le service d'upload pour stocker la photo sur Cloudinary
-                $photoUrl = app(UploadService::class)->upload($uploadedFile);
-            }
+            //     // Utiliser le service d'upload pour stocker la photo sur Cloudinary
+            //     $photoUrl = app(UploadService::class)->upload($uploadedFile);
+
+             
+            // }
             // $cloudinaryService = app(UploadService::class);
             // $photoUrl = null;
             // if (isset($data['photo'])) {
@@ -93,12 +122,37 @@ class UserServiceImpl implements UserService
                 'login' => $data['login'],
                 'mail' => $data['mail'],
                 'role_id' => 3,
-                'photo' => $photoUrl ?? null,
+                'photo' => $data['photo'] ?? null,
             ];
-
+            if (isset($userData['photo']) && $userData['photo'] instanceof UploadedFile) {
+                // Appeler le service d'upload pour sauvegarder la photo
+                // dd($data);
+                // $uploadedFileUrl = app(ImageUploadService::class)->uploadImage($data['photo'], 'image');
+                $folder = 'images';
+                // $filePath=Storage::path($file);
+               $filePath = $userData['photo']->getRealPath();
+               // dd("sidy",$file,Storage::exists($file));
+               $uploadedFileUrl = Cloudinary::upload($filePath, [
+                   'folder' => $folder
+                ]);
+                $uploadedFileUrl = $uploadedFileUrl->getSecurePath();
+                // dd($uploadedFileUrl);
+                // Vérifier si l'upload a réussi
+                if ($uploadedFileUrl) {
+                    // Mettre à jour l'URL de la photo dans le tableau de données
+                    $userData['photo'] = $uploadedFileUrl;
+                } else {
+                    throw new \Exception("Erreur lors de l'upload de la photo.");
+                }
+            }
+            // dd($userData);
             $user = User::create($userData);
+            // $uploadedFileUrl = UploadCloudImageFacade::uploadImage($data['photo'], 'image');
+            // $user->update(['photo' => $uploadedFileUrl]);
+            // $user->save();
 
-            // Association du client à l'utilisateur
+            // event(new UserCreated($user,$data['photo']));
+            // $user->update['photo',]
             $client = Client::find($data['client_id']);
 
             if (!$client) {

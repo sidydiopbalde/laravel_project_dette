@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Exceptions\ServiceException;
 use App\Repository\PaiementRepository;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class PaiementServiceImpl implements PaiementService
@@ -21,19 +22,19 @@ class PaiementServiceImpl implements PaiementService
         try {
             // Récupérer la dette
             $dette = $this->paiementRepository->getDetteById($data['dette_id']);
-
             // Calculer la somme des paiements effectués sugetDetteByIdr cette dette
             $totalPaiements = $dette->paiements()->sum('montant');
-
+            
             // Vérifier si la dette est déjà payée ou si le nouveau paiement dépasse le montant restant
             $montantRestant = $dette->montant - $totalPaiements;
-
-            if ($montantRestant <= 0) {
-                throw new ServiceException('Cette dette a déjà été totalement payée.');
+            
+            if ($montantRestant <= 0.0) {
+                // dd($montantRestant);
+                throw new Exception('Cette dette a déjà été totalement payée.');
             }
 
             if ($data['montant'] > $montantRestant) {
-                throw new ServiceException('Le montant du paiement dépasse le montant restant de la dette.');
+                throw new ServiceException('Le montant du paiement ne doit pas  dépasser le montant restant de la dette.');
             }
 
             // Créer le paiement

@@ -23,7 +23,7 @@ Route::prefix('v1')->middleware('json.response')->group(function () {
     // Authentification et utilisateur
     Route::post('/login', [AuthController::class, 'login'])->name('login');
     
-    Route::middleware(['auth:api', 'can:accessAdminRoutes,App\Models\User'])->post('/registerUser', [UserController::class, 'store']);
+    Route::middleware(['auth:api'])->post('/registerUser', [UserController::class, 'store']);
     // Routes protégées par authentification et permission d'admin
     Route::prefix('users')->middleware(['auth:api', 'can:accessAdminRoutes,App\Models\User'])->group(function () {
         Route::get('/', [UserController::class, 'index']); //A revoir
@@ -37,7 +37,7 @@ Route::prefix('v1')->middleware('json.response')->group(function () {
     // Routes pour les clients protégées par authentification
     Route::prefix('clients')->middleware(['auth:api', 'can:access,App\Models\Article'])->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('clients.index');
-        Route::get('{id}/dettes', [DetteController::class, 'listDettes'])->name('clients.dettes');
+        Route::get('{id}/dettes', [DetteController::class, 'index'])->name('clients.dettes');
         Route::get('{id}/users', [ClientController::class, 'showClientWithUser'])->name('clients.show');
         Route::post('/', [ClientController::class, 'store'])->name('clients.store');
         Route::put('{id}', [ClientController::class, 'update'])->name('clients.update');
