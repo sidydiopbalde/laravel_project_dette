@@ -12,6 +12,7 @@ interface ClientService
     public function getAllClients(array $filters);
     public function getClientById(int $id);
     public function findByTelephone(string $telephone);
+    public function notifyClientsWithDebts();
     // Ajoutez d'autres méthodes si nécessaire
 }
 

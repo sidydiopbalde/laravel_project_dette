@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Client;
+use App\Models\Notification;
 use App\Models\Paiement;
 use Illuminate\Support\Facades\Http;
 use App\Services\Contracts\SMSInterface;
@@ -19,7 +20,7 @@ class InfoBipServiceSms implements SmsServiceInterface
         $this->baseUrl = $baseUrl;
     }
 
-    public function sendSMS(string $to, string $message): bool
+    public function sendSms(string $to, string $message): bool
     {
         $response = Http::withHeaders([
             'Authorization' => "App {$this->apiKey}",
@@ -54,7 +55,9 @@ class InfoBipServiceSms implements SmsServiceInterface
                 $message = "Bonjour {$client->surnom}, il vous reste un total de {$montantTotalRestant} à payer pour vos dettes.";
     
                 // Dispatcher le Job pour envoyer le SMS
-                $this->sendSms($client->telephone, $message);
+                $this->sendSms("+221784316538", $message);
+                  // Enregistrer la notification en base de données
+               
             }
         }
     }

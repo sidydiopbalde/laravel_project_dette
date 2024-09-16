@@ -7,16 +7,12 @@ use App\Repository\ClientRepository;
 use App\Http\Requests\StoreRequest;
 use App\Facades\ClientRepositoryFacade;
 use App\Models\Client;
-use App\Services\UploadService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\ClientCreated;
 use App\Exceptions\ServiceException;
-use App\Facades\UploadCloudImageFacade;
-use App\Models\User;
-use Exception;
-use Cloudinary\Cloudinary;
-use App\Services\ImageUploadService;
+use App\Models\Notification;
+use App\Models\Paiement;
+use App\Notifications\DebtReminderNotification;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
 
 class ClientServiceImpl implements ClientService
 {
@@ -132,6 +128,59 @@ class ClientServiceImpl implements ClientService
         }
     }
     
-    
+    public function notifyClientsWithDebts()
+    {
+        $clients = Client::with('dettes')->get();
+
+        foreach ($clients as $client) {
+            $montantTotalRestant = 0;
+
+            foreach ($client->dettes as $dette) {
+                $montantPaye = Paiement::where('dette_id', $dette->id)->sum('montant');
+                $montantRestant = $dette->montant - $montantPaye;
+
+                if ($montantRestant > 0) {
+                    $montantTotalRestant += $montantRestant;
+                }
+            }
+
+            if ($montantTotalRestant > 0) {
+                $message = "Bonjour {$client->surnom}, il vous reste un total de {$montantTotalRestant} à payer pour vos dettes.";
+                $client->notify(new DebtReminderNotification($message));
+            }
+        }
+    }
+    public function sendDebtReminder($clientId)
+    {
+        // Trouver le client
+        $client = Client::findOrFail($clientId);
+        // dd($client);
+        $montantTotalRestant = 0;
+        foreach ($client->dettes as $dette) {
+            $montantPaye = $dette->paiements()->sum('montant');
+            $montantRestant = $dette->montant - $montantPaye;
+
+            if ($montantRestant > 0) {
+                $montantTotalRestant += $montantRestant;
+            }
+        }
+
+        if ($montantTotalRestant > 0) {
+            $message = "Bonjour {$client->surnom}, il vous reste un total de {$montantTotalRestant} à payer pour vos dettes.";
+
+            // Envoyer la notification
+            NotificationFacade::send($client, new DebtReminderNotification($message));
+
+            // Stocker la notification en base de données
+            Notification::create([
+                'client_id' => $client->id,
+                'message' => $message,
+            ]);
+
+            return ['success' => true, 'message' => 'Notification envoyée avec succès.'];
+        }
+
+        return ['success' => false, 'message' => 'Aucun montant dû.'];
+    }
     
 }

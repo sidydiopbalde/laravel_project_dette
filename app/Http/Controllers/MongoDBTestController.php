@@ -14,7 +14,7 @@ class MongoDBTestController extends Controller
     {
         $this->mongoClient = $mongoConnection->getClient();
     }
-
+ 
     public function testConnection()
     {
         try {

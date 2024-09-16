@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -13,9 +14,28 @@ use App\Http\Controllers\MongoTestController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\SmsController;
 use App\Http\Controllers\MongoDBTestController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SmsbipController;
 use App\Jobs\ArchiveSoldeJob;
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/notifications/client/{clientId}/unread', [NotificationController::class, 'getUnreadNotifications']);
+Route::get('/notifications/client/{clientId}/read', [NotificationController::class, 'getReadNotifications']);
+Route::post('/notifications/{id}/read', [NotificationController::class, 'markNotificationAsRead']);
+
+Route::post('/notification/client/message', [NotificationController::class, 'sendMessageToClients']);
+Route::get('/v1/notification/client/all', [NotificationController::class, 'sendNotificationsToAllClients']);
+// Route::get('/v1/notification/client/{id}', [NotificationController::class, 'sendNotification']);
+Route::get('/v1/restaure/client/{client_id}', [ArchiveController::class, 'restoreArchivedDettesByClient']);
+Route::get('/v1/restaure/dette/{id}', [ArchiveController::class, 'restoreArchivedDetteById']);
+Route::get('/v1/restaure/dette/{date}', [ArchiveController::class, 'restoreArchivedDettesByDate']);
+Route::get('/v1/archive/dettes/{id}', [ArchiveController::class, 'getArchivedDetteDetailsById']);
+Route::get('v1/archive/clients/{id}/dettes', [ArchiveController::class, 'getArchivedDettesByClient']);
+Route::get('/v1/dettes/archive', [ArchiveController::class, 'showArchivedDettes']);
 Route::post('/v1/register', [UserController::class, 'storeUserClientExist']);
 // Route::middleware(['auth:api', 'can:accessAdminRoutes,App\Models\User','json.response'])->post('/v1/register', [UserController::class, 'storeUserClientExist'])->name('users.registerClient');
 
@@ -108,3 +128,4 @@ Route::post('/firebaseSave', [FirebaseController::class, 'archiveDettes']);
 
 //infoBip sendSms
 Route::get('/v1/send-info_bip', [SmsbipController::class, 'sendSms']);
+

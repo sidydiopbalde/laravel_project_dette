@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Scopes\FilterScope;
  use App\Observers\ClientObserver;
+ use Illuminate\Notifications\Notifiable;
  use Illuminate\Database\Eloquent\Attributes\ObservedBy;
  #[ObservedBy([ClientObserver::class])]
 class Client extends Model
 {
-    use HasFactory;
+    use HasFactory,Notifiable;
 
     // Si vous utilisez des noms de table personnalisés ou des clés primaires autres que 'id', définissez-les ici
     // protected $table = 'clients';
@@ -33,6 +34,11 @@ class Client extends Model
          static::addGlobalScope(new FilterScope(request()->all()));
         //  static::observe(ClientObserver::class);
      }
+      // Relation avec le modèle Notification
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
    // Définir la relation avec le modèle UserProfile
     public function user()
     {
@@ -53,6 +59,12 @@ class Client extends Model
 
         // Retourner la valeur de la photo par défaut si aucun utilisateur n'est associé
         return 'app/public/photos/MD2m5haBKOnj0qnYYRwhhDiR821WQfaMi7mgHk0P.png';  // Remplacez par le chemin de la photo par défaut
+    }
+
+// Retourner le numéro de téléphone pour les notifications
+    public function routeNotificationForSms()
+    {
+        return $this->telephone;
     }
 }
 

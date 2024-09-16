@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Broadcasting\SmsChannel;
+use App\Models\Notification;
 use App\Models\Paiement;
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleRepositoryImpl;
@@ -20,6 +22,8 @@ use App\Services\FirebaseServiceInterface;
 use App\Services\PaiementService;
 use App\Services\PaiementServiceImpl;
 use App\Services\InfoBipServiceSms;
+use App\Services\SmsNotificationService;
+use App\Services\SmsNotificationsService;
 use App\Services\SmsService;
 use App\Services\SmsServiceFactory;
 use App\Services\SmsServiceInterface;
@@ -42,12 +46,6 @@ class AppServiceProvider extends ServiceProvider
          $this->app->bind(UploadService::class, UploadServiceImpl::class);
          $this->app->bind(FirebaseServiceInterface::class, FirebaseService::class);
     
-        //  $this->app->singleton(SmsServiceInterface::class, function ($app) {
-        //     return new InfoBipServiceSms(
-        //         env('INFOBIP_API_KEY'),
-        //         env('INFOBIP_BASE_URL')
-        //     );
-        // });
         $this->app->singleton(SmsServiceInterface::class, function ($app) {
             return SmsServiceFactory::make();
         });
@@ -70,6 +68,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(UserRepository::class, function ($app) {
             return new UserRepositoryImpl();
         });
+        // $this->app->singleton(SmsNotificationService::class, function ($app) {
+        //     return new SmsNotificationService();
+        // });
 
         $this->app->singleton(UserService::class, function ($app) {
             return new UserServiceImpl($app->make(UserRepository::class));
@@ -81,6 +82,15 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PaiementService::class, function ($app) {
             return new PaiementServiceImpl($app->make(PaiementRepository::class));
         });
+
+        $this->app->singleton(SmsServiceInterface::class, function ($app) {
+            
+            return SmsServiceFactory::make();
+        });
+        $this->app->singleton(SmsNotificationsService::class, function ($app) {
+            return new SmsNotificationsService();
+        });
+        
     }
 
 
